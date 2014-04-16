@@ -9,7 +9,7 @@ A single instance of this is owned by the app.
 
 """
 
-class netSocket(object):
+class netSocket:
 	# System Functions
 	def __init__(self):
 	def __enter__(self):

@@ -10,7 +10,7 @@ This class is a singleton.
 
 """
 
-class netOS(object):
+class netOS:
 	# System Functions
 	def __init__(self):
 	def __enter__(self):

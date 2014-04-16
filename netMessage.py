@@ -11,7 +11,7 @@ Many instances of this are owned by the netTransportLayer
 
 """
 
-class netMessage(object):
+class netMessage:
 
 	def __init__(self, msg = None, mac = None, address = None, binary = []):
 
@@ -35,6 +35,8 @@ class netMessage(object):
 	def getIPs(self):
 
 	def getPorts(self):
+
+	def getDestPort(self):
 
 	def send(self):
 
