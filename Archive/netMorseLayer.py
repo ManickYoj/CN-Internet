@@ -105,7 +105,7 @@ class netMorseLayer:
         if self.appQueues[app_id]:
             msg = self.appQueues.pop()
             return (msg.getMsg(), msg.getAddress())
-        else return None
+        else: return None
 
     # ----- Private Methods ----- #
     def route(self, msg):
