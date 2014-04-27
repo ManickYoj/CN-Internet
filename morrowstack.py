@@ -81,7 +81,10 @@ class DatalinkLayer(BaseLayer):
         # Bottom up (Msg Recieved) initilization happens here
         if isinstance(payload, str):
             header = (payload[0], payload[1])
-            payload = IPLayer(payload[2:], verbose=verbose)
+            try:
+                payload = IPLayer(payload[2:], verbose=verbose)
+            except ValueError:
+                raise
 
         super(DatalinkLayer, self).__init__(payload, header, verbose)
 
@@ -111,8 +114,9 @@ class IPLayer(BaseLayer):
         # Bottom up (msg recieved) initilization
         elif isinstance(payload, str):
             header = (payload[:2], payload[2:4])
-            self.length = mu.base36Decode(payload[4:6])
-            self.setTransportProtocol(payload[6])
+            self.setTransportProtocol(payload[4])
+            self.length = mu.base36Decode(payload[5:7])
+
             if self.transport_protocol == 'E':
                 payload = UDPLayer(payload[7:], verbose=verbose)
 
@@ -198,7 +202,10 @@ if __name__ == "__main__":
     print("Running unit tests for {!s}".format(__file__))
 
     print("Attempting bottom up (msg recieved) stack construction...")
-    dl = DatalinkLayer("INIIIN09EEERECVMSG", verbose=True)
+    dl = DatalinkLayer("INIIINE09EERECVMSG", verbose=True)
+    print(" ")
+
+    dl = DatalinkLayer("NIINIIE08EEAPPMSG", verbose=True)
     print(" ")
 
     print("Attempting top down (msg constructed) stack construction...")
