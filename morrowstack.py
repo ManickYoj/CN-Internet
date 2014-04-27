@@ -2,24 +2,25 @@
 morrowstack.py
 --------------
 Author: Nick Francisci
-Status: Complete & Basic Functionality Tested
+Status: Basic Functionality Complete & Tested
 Description:
 Contains the classes describing all stack layers.
 
 Example Interfacing:
     - If constructed from the hardware (msg recieved):
         1. In NIC layer: Initilize Datalink(payload_string)
-            a. Returns True if initilization goes through without errors
-            b. Returns False if any initilizations fail
+            a. Raises ValueError at appropriate stack level if any initilizations fail
 
     - If constructed from the app (msg constructed):
-        1. In sockets layer: Initilize Transport(message, (src_port, dest_port))
-        2. In sockets layer: Initilize IP(Transport, (src_ip, dest_ip))
-        3. In NIC layer: Initilize Datalink(IP, (src_mac, dest_mac))
+        1. In sockets layer: Initilize TransportLayer(message, (src_port, dest_port))
+        2. In sockets layer: Initilize IPLayer(Transport, (src_ip, dest_ip), transport_protocol)
+        3. In NIC layer: Initilize DatalinkLayer(IP, (src_mac, dest_mac))
         4. In NIC layer: Send Datalink.toBinary()
 
 
 TODO: Ensure that length/port parameters are parsed to int format correctly
+TODO: Create toBinary method if it is to be used
+TODO: Make more robust testing for proper lengths/formats of attributes beyond type
 """
 
 
@@ -91,8 +92,11 @@ class IPLayer(BaseLayer):
 
     def __init__(self, payload=None, header=None, transport_protocol=None, verbose=False):
         # Top down (msg constructed) initilization
-        if isinstance(payload, TransportLayer):
+        if isinstance(payload, TransportLayer) and header and transport_protocol:
             self.transport_protocol = transport_protocol
+        elif isinstance(payload, TransportLayer) and not (header and transport_protocol):
+            raise ValueError("Error in attemping to initilize IPLayer from app data: invalid " +
+                             "value entered for either header or transport_protocol")
 
         # Bottom up (msg recieved) initilization
         elif isinstance(payload, basestring):
@@ -187,6 +191,6 @@ if __name__ == "__main__":
     print(" ")
 
     print("Attempting top down (msg constructed) stack constructed...")
-    udp = UDPLayer("APPMSG", ("E", "E"), True)
-    ip = IPLayer(udp, ("IN", "II"), "E", True)
-    dl = DatalinkLayer(ip, ("N", "I"), True)
+    udp = UDPLayer("APPMSG", ("E", "E"), verbose=True)
+    ip = IPLayer(udp, ("IN", "II"), "E", verbose=True)
+    dl = DatalinkLayer(ip, ("N", "I"), verbose=True)
