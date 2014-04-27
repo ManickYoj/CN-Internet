@@ -18,7 +18,7 @@ GPIO.setwarnings(False)
 class MorrowNIC(object):
 	def __init__(self):
 		self.all_pulses = []
-		self.MAC = 'A'
+		self.MAC = 'I'
 		
 		self.pulse_duration = .01*1000000
 		self.pulse_width = None
@@ -38,8 +38,9 @@ class MorrowNIC(object):
 		self.send_queue = Queue()
 		self.ack_send_queue = Queue()
 		self.last_ack_received = None
-		self.send_queue.put(DatalinkLayer("BACDEFGHIJKLMNOPQRSTUVWXYZ"))
-		#self.send_queue.put("More stuff")
+		self.send_queue.put(DatalinkLayer("NIINIIE08EEAPPMSG"))
+		self.send_queue.put(DatalinkLayer("NIINIIE08EEHINICK"))
+		self.send_queue.put(DatalinkLayer("NIINIIE08EEMORROW"))
 		self.ack_wait = self.pulse_duration*100
 		self.send_thread = threading.Thread(target=self.send())
 		self.send_thread.start()
@@ -148,16 +149,16 @@ class MorrowNIC(object):
 					print("Sent transmission")
 					sleep(self.ack_wait/1000000)
 					if self.last_ack_received == datalink.getDestMAC():
-                                                self.last_ack_received = None
-						print("Ack received: " + ack)
+						print("Ack received: " + self.last_ack_received)
+						self.last_ack_received = None
 					else:
 						self.send_queue.put(datalink)
 			sleep((self.ack_wait/1000000)/4)
 
 	def sendMessage(self,IP):
-                dest = 'B'
-                datalink = DatalinkLayer(IP,(dest,self.MAC))
-                self.send_queue.put(datalink)
+		dest = 'B'
+		datalink = DatalinkLayer(IP,(dest,self.MAC))
+		self.send_queue.put(datalink)
 		
 			
 class Datalink(object):
