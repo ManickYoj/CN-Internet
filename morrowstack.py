@@ -1,3 +1,16 @@
+# Example Intefacing:
+#   - If constructed from the bottom up:
+#       1. Initilize datalink(payload)
+#           a. Returns True if initilization goes through without errors
+#           b. Returns False if any initilizations fail
+#
+#   - If constructed from the top down:
+#       1. Initilize Transport(message)
+#       2. Initilize IP(Transport)
+#       3. Initilize Datalink(IP)
+#       4. Send Datalink.toBinary()
+
+
 class BaseLayer(object):
 
     def __init__(self, payload=None, verbose=False):
@@ -6,6 +19,11 @@ class BaseLayer(object):
 
         if isinstance(payload, BaseLayer) or payload is None:
             self.payload = payload
+
+        else:
+            return False
+
+        return True
 
     def getNext(self):
         return self.payload
@@ -17,6 +35,9 @@ class DatalinkLayer(BaseLayer):
         super(DatalinkLayer, self).__init__(payload, verbose)
         self.src_mac = mac[0]
         self.dest_mac = mac[1]
+
+        if payload:
+            self.payload = IPLayer(payload[2:])
 
         if self.verbose:
             print("DatalinkLayer initilized with a source MAC '{}'," +
