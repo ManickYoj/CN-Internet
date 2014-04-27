@@ -7,13 +7,12 @@ import threading
 from morrowstack import DatalinkLayer
 
 #------------------SETUP------------------#
-
+GPIO.setwarnings(False)
 output_pin = 7
 input_pin = 12
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(input_pin,GPIO.IN)
 GPIO.setup(output_pin,GPIO.OUT)
-GPIO.setwarnings(False)
 #------------------CLASS------------------#
 class MorrowNIC(object):
 	def __init__(self):
