@@ -36,9 +36,9 @@ class MorrowNIC(object):
 		self.running = True
 		self.send_queue = Queue()
 		self.ack_queue = Queue()
-		self.send_queue.put("B cat ran down the sidewalk")
+		self.send_queue.put("AB cat ran down the sidewalk")
 		#self.send_queue.put("More stuff")
-		self.ack_wait = self.pulse_duration*10
+		self.ack_wait = self.pulse_duration*50
 		self.send_thread = threading.Thread(target=self.send())
 		self.send_thread.start()
 		
@@ -87,7 +87,7 @@ class MorrowNIC(object):
 			datalink = Datalink(text)
 			if datalink.dest_MAC == self.MAC:
 				print("sending ack")
-				self.ack_queue.put(datalink.source_MAC)
+				self.ack_queue.put(datalink.dest_MAC)
 				self.receive_queue.put(datalink)
 		print(text)
 
@@ -152,8 +152,8 @@ class MorrowNIC(object):
 			
 class Datalink(object):
 	def __init__(self,transmission):
-		self.dest_MAC = transmission[0]
-		self.source_MAC = 'B'
+		self.source_MAC = transmission[0]
+		self.dest_MAC = transmission[1]
 
 if __name__ == "__main__":
 	s = .01
