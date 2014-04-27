@@ -82,10 +82,9 @@ class DatalinkLayer(BaseLayer):
         super(DatalinkLayer, self).__init__(payload, header, verbose)
 
         if self.verbose:
-            print("DatalinkLayer initilized with a source MAC '{}'," +
-                  " a dest MAC '{}', and a payload '{}'".format(self.header[0],
-                                                                 self.header[1],
-                                                                 self.payload))
+            print("DatalinkLayer initilized with a source MAC '{}', a dest MAC '{}', and a payload '{}'".format(self.header[0],
+                                                                                                                self.header[1],
+                                                                                                                self.payload))
 
 
 class IPLayer(BaseLayer):
@@ -108,12 +107,10 @@ class IPLayer(BaseLayer):
         super(IPLayer, self).__init__(payload, header, verbose)
 
         if self.verbose:
-            print("IPLayer initilized with a source IP '{}'," +
-                  " a dest IP '{}', a protocol '{}'," +
-                  "and a payload '{}'".format(self.header[0],
-                                              self.header[1],
-                                              self.transport_protocol,
-                                              self.payload))
+            print("IPLayer initilized with a source IP '{}', a dest IP '{}', a protocol '{}', and a payload '{}'".format(self.header[0],
+                                                                                                                         self.header[1],
+                                                                                                                         self.transport_protocol,
+                                                                                                                         self.payload))
 
     # ----- Public Methods ----- #
     def getTransportProtocol(self):
@@ -154,12 +151,10 @@ class UDPLayer(TransportLayer):
         super(UDPLayer, self).__init__(payload, header, verbose)
 
         if self.verbose:
-            print("UDPLayer initilized with a source port '{}'," +
-                  " a dest port '{}', a length '{}'," +
-                  "and a message '{}'".format(self.header[0],
-                                              self.header[1],
-                                              self.length,
-                                              self.payload))
+            print("UDPLayer initilized with a source port {!r}, a dest port {!r}, a length {!r}, and a message {!r}".format(self.header[0],
+                                                                                                                            self.header[1],
+                                                                                                                            self.length,
+                                                                                                                            self.payload))
 
     # ----- Public Methods ----- #
     def getLength(self):
@@ -174,7 +169,7 @@ class UDPLayer(TransportLayer):
             self.length = len(payload)
 
         if self.verbose and not init:  # This message is turned off for initilization
-            print("Message set as {} and message length calculated as {}.".format(self.payload, self.length))
+            print("Message set as {!r} and message length calculated as {!r}.".format(self.payload, self.length))
 
     # ----- Private Methods ------ #
     def checkPayload(self, payload):
@@ -184,7 +179,7 @@ class UDPLayer(TransportLayer):
 
 # ----- Unit Testing ----- #
 if __name__ == "__main__":
-    print("Running unit tests for {}".format(__file__))
+    print("Running unit tests for {!s}".format(__file__))
 
     print("Attempting bottom up (msg recieved) stack construction...")
     dl = DatalinkLayer("INIIINEEE06RECVMSG", verbose=True)
