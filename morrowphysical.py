@@ -10,8 +10,6 @@ import threading
 output_pin = 7
 input_pin = 12
 GPIO.setmode(GPIO.BOARD)
-GPIO.setup(output_pin,GPIO.OUT)
-GPIO.setup(input_pin,GPIO.IN)
 GPIO.setwarnings(False)
 #------------------CLASS------------------#
 class MorrowNIC(object):
@@ -86,7 +84,7 @@ class MorrowNIC(object):
 		else:
 			datalink = Datalink(text)
 			if datalink.dest_MAC == self.MAC:
-				print("Sending ack: " + datalink.dest_MAC)
+				print("Putting ack in queue: " + datalink.dest_MAC)
 				self.ack_queue.put(datalink.dest_MAC)
 				self.receive_queue.put(datalink)
 
@@ -135,17 +133,20 @@ class MorrowNIC(object):
 				transmission = self.convertToTransmission(self.ack_queue.get())
 				sleep(self.pulse_duration*5/1000000)
 				self.transmit(transmission)
+				print("Sent ack")
 			elif not self.send_queue.empty():
 				difference = (datetime.now()-self.previous_edge)
 				if (difference.seconds*1000000 + difference.microseconds) > self.ack_wait:
 					raw_transmission = self.send_queue.get()
 					transmission = self.convertToTransmission(raw_transmission)
 					self.transmit(transmission)
+					print("Sent transmission")
 					sleep(self.ack_wait/1000000)
 					if not self.ack_queue.empty():
 						ack = self.ack_queue.get()
 						print("Ack received: " + ack)
-					self.send_queue.put(raw_transmission)
+					else:
+						self.send_queue.put(raw_transmission)
 			sleep((self.ack_wait/1000000)/4)
 		
 			
@@ -156,6 +157,5 @@ class Datalink(object):
 
 if __name__ == "__main__":
 	s = .01
-	GPIO.output(7,GPIO.LOW)
 	nic = MorrowNIC()
 	
