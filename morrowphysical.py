@@ -2,7 +2,7 @@ import RPi.GPIO as GPIO
 from time import sleep
 from datetime import datetime
 from queue import Queue
-from morrowglobals import charToBinaryDict,binaryToCharDict
+from morrowutilities import charToBinaryDict,binaryToCharDict
 import threading
 from morrowstack import DatalinkLayer
 
@@ -37,7 +37,7 @@ class MorrowNIC(object):
 		self.running = True
 		self.send_queue = Queue()
 		self.ack_send_queue = Queue()
-		self.ack_receive_queue = Queue()
+		self.last_ack_received = None
 		self.send_queue.put(DatalinkLayer("BACDEFGHIJKLMNOPQRSTUVWXYZ"))
 		#self.send_queue.put("More stuff")
 		self.ack_wait = self.pulse_duration*100
