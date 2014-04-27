@@ -75,21 +75,20 @@ class MorrowNIC(object):
 			elif pulse[1] > self.pulse_width*6.0 and pulse[1] <= self.pulse_width*8.0:
 				length = 7
 			else:
-				print(length)
 				length = 0
 			transmission += str(pulse[0])*int(length)
 		transmission = self.errorCorrect(transmission)
 		#---TO BE EDITED---#
 		text = self.convertToText(transmission)
+		print("Received: " + text)
 		if len(text) == 1:
 			self.ack_queue.put(text)
 		else:
 			datalink = Datalink(text)
 			if datalink.dest_MAC == self.MAC:
-				print("sending ack")
+				print("Sending ack: " + datalink.dest_MAC)
 				self.ack_queue.put(datalink.dest_MAC)
 				self.receive_queue.put(datalink)
-		print(text)
 
 	def errorCorrect(self,transmission):
 		return transmission
@@ -145,7 +144,7 @@ class MorrowNIC(object):
 					sleep(self.ack_wait/1000000)
 					if not self.ack_queue.empty():
 						ack = self.ack_queue.get()
-						print("ack received: " + ack)
+						print("Ack received: " + ack)
 					self.send_queue.put(raw_transmission)
 			sleep((self.ack_wait/1000000)/4)
 		
