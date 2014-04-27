@@ -38,7 +38,7 @@ class MorrowNIC(object):
 		self.send_queue = Queue()
 		self.ack_send_queue = Queue()
 		self.ack_receive_queue = Queue()
-		self.send_queue.put(DatalinkLayer("ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
+		self.send_queue.put(DatalinkLayer("BACDEFGHIJKLMNOPQRSTUVWXYZ"))
 		#self.send_queue.put("More stuff")
 		self.ack_wait = self.pulse_duration*100
 		self.send_thread = threading.Thread(target=self.send())
@@ -153,6 +153,11 @@ class MorrowNIC(object):
 					else:
 						self.send_queue.put(datalink)
 			sleep((self.ack_wait/1000000)/4)
+
+	def sendMessage(self,IP):
+                dest = 'B'
+                datalink = DatalinkLayer(IP,(dest,self.MAC))
+                self.send_queue.put(datalink)
 		
 			
 class Datalink(object):
