@@ -27,7 +27,7 @@ TODO: Make more robust testing for proper lengths/formats of attributes beyond t
 class BaseLayer(object):
     """
     The base for all stack layer classes.
-    Contains the initilization, getter, and setter methods for the
+    Contains a basic initilization, getter, and setter methods for the
     header and payload of every layer.
 
     """
@@ -65,17 +65,17 @@ class BaseLayer(object):
 
     def checkHeader(self, header):
         """ Checks to ensure that the header meets format specifications. """
-        if not (isinstance(header[0], basestring) and isinstance(header[1], basestring)):
+        if not (isinstance(header[0], str) and isinstance(header[1], str)):
             exception_text = "Error in the format of the header of {}.".format(self)
             raise ValueError(exception_text)
 
 
 class DatalinkLayer(BaseLayer):
-
+    """ Morse implementation of the MAC/Datalink layer. """
     def __init__(self, payload=None, header=None, verbose=False):
         # Top down (Msg Constructed) initilization is handled by super call alone
         # Bottom up (Msg Recieved) initilization happens here
-        if isinstance(payload, basestring):
+        if isinstance(payload, str):
             header = (payload[0], payload[1])
             payload = IPLayer(payload[2:], verbose=verbose)
 
@@ -83,13 +83,13 @@ class DatalinkLayer(BaseLayer):
 
         if self.verbose:
             print("DatalinkLayer initilized with a source MAC '{}'," +
-                  " a dest MAC '{}', and a payload '{}'").format(self.header[0],
+                  " a dest MAC '{}', and a payload '{}'".format(self.header[0],
                                                                  self.header[1],
-                                                                 self.payload)
+                                                                 self.payload))
 
 
 class IPLayer(BaseLayer):
-
+    """ Morse implementation of the IP layer. """
     def __init__(self, payload=None, header=None, transport_protocol=None, verbose=False):
         # Top down (msg constructed) initilization
         if isinstance(payload, TransportLayer) and header and transport_protocol:
@@ -99,7 +99,7 @@ class IPLayer(BaseLayer):
                              "value entered for either header or transport_protocol")
 
         # Bottom up (msg recieved) initilization
-        elif isinstance(payload, basestring):
+        elif isinstance(payload, str):
             header = (payload[:2], payload[2:4])
             self.setTransportProtocol(payload[4])
             if self.transport_protocol == 'E':
@@ -110,10 +110,10 @@ class IPLayer(BaseLayer):
         if self.verbose:
             print("IPLayer initilized with a source IP '{}'," +
                   " a dest IP '{}', a protocol '{}'," +
-                  "and a payload '{}'").format(self.header[0],
-                                               self.header[1],
-                                               self.transport_protocol,
-                                               self.payload)
+                  "and a payload '{}'".format(self.header[0],
+                                              self.header[1],
+                                              self.transport_protocol,
+                                              self.payload))
 
     # ----- Public Methods ----- #
     def getTransportProtocol(self):
@@ -128,7 +128,7 @@ class IPLayer(BaseLayer):
     # ----- Private Methods ----- #
     def checkTransportProtocol(self, transport_protocol):
         """ Checks to ensure that the transport_protocol attribute matches format requirements. """
-        if not(isinstance(transport_protocol, basestring) and len(transport_protocol)) == 1:
+        if not(isinstance(transport_protocol, str) and len(transport_protocol)) == 1:
             raise ValueError("Invalid transport protocol value entered.")
 
 
@@ -156,10 +156,10 @@ class UDPLayer(TransportLayer):
         if self.verbose:
             print("UDPLayer initilized with a source port '{}'," +
                   " a dest port '{}', a length '{}'," +
-                  "and a message '{}'").format(self.header[0],
-                                               self.header[1],
-                                               self.length,
-                                               self.payload)
+                  "and a message '{}'".format(self.header[0],
+                                              self.header[1],
+                                              self.length,
+                                              self.payload))
 
     # ----- Public Methods ----- #
     def getLength(self):
@@ -174,23 +174,23 @@ class UDPLayer(TransportLayer):
             self.length = len(payload)
 
         if self.verbose and not init:  # This message is turned off for initilization
-            print("Message set as {} and message length calculated as {}.").format(self.payload, self.length)
+            print("Message set as {} and message length calculated as {}.".format(self.payload, self.length))
 
     # ----- Private Methods ------ #
     def checkPayload(self, payload):
         """ Override of BaseLayer checkPayload. Checks for payload type as string instead of BaseLayer. """
-        if not(isinstance(payload, basestring)):
+        if not(isinstance(payload, str)):
             raise ValueError("Message is not a string!")
 
 # ----- Unit Testing ----- #
 if __name__ == "__main__":
-    print("Running unit tests for {}").format(__file__)
+    print("Running unit tests for {}".format(__file__))
 
     print("Attempting bottom up (msg recieved) stack construction...")
     dl = DatalinkLayer("INIIINEEE06RECVMSG", verbose=True)
     print(" ")
 
-    print("Attempting top down (msg constructed) stack constructed...")
+    print("Attempting top down (msg constructed) stack construction...")
     udp = UDPLayer("APPMSG", ("E", "E"), verbose=True)
     ip = IPLayer(udp, ("IN", "II"), "E", verbose=True)
     dl = DatalinkLayer(ip, ("N", "I"), verbose=True)
