@@ -43,7 +43,7 @@ class MorrowNIC(object):
 		self.ack_wait = self.pulse_duration*100
 		self.send_thread = threading.Thread(target=self.send())
 		self.send_thread.start()
-		
+		print ("Look, I'm still executing code Ian!")
 
 	def edgeFound(self,pin):
 		self.current_edge = datetime.now()
