@@ -14,6 +14,8 @@ input_pin = 12
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(input_pin,GPIO.IN)
 GPIO.setup(output_pin,GPIO.OUT)
+GPIO.output(output_pin,GPIO.LOW)
+GPIO.setup(output_pin,GPIO.IN)
 #------------------CLASS------------------#
 class MorrowNIC(object):
 	def __init__(self,receive_queue,send_queue):
@@ -168,7 +170,8 @@ if __name__ == "__main__":
 	receive_queue = Queue()
 	send_queue = Queue()
 	nic = MorrowNIC(receive_queue,send_queue)
-        self.send_queue.put(DatalinkLayer("NIINIIE08EEAPPMSG"))
-        self.send_queue.put(DatalinkLayer("NIINIIE08EEHINICK"))
-        self.send_queue.put(DatalinkLayer("NIINIIE08EEMORROW"))
+	sleep(4)
+	nic.send_queue.put(DatalinkLayer("ININIIE08EEAPPMSG"))
+	nic.send_queue.put(DatalinkLayer("ININIIE08EEHINICK"))
+	nic.send_queue.put(DatalinkLayer("ININIIE08EEMORROW"))
 	
