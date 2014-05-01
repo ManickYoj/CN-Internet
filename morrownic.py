@@ -22,7 +22,7 @@ class MorrowNIC(object):
 		self.all_pulses = []
 		self.MAC = mac.my_mac
 		
-		self.pulse_duration = .01*1000000
+		self.pulse_duration = .008*1000000
 		self.pulse_width = None
 
 		self.previous_edge = datetime.now()
@@ -86,16 +86,16 @@ class MorrowNIC(object):
 		if len(text) == 1:
 			self.last_ack_received = text
 		else:
-                        try:
-                                datalink = DatalinkLayer(text)
-                        except:
-                                pass
-                        else:
-                                dest = datalink.getDestMAC()
-                                if dest == self.MAC:
-                                        print("Putting ack in queue: " + dest)
-                                        self.ack_send_queue.put(dest)
-                                        self.receive_queue.put(datalink)
+			try:
+				datalink = DatalinkLayer(text)
+			except:
+				pass
+			else:
+				dest = datalink.getDestMAC()
+				if dest == self.MAC:
+					print("Putting ack in queue: " + dest)
+					self.ack_send_queue.put(dest)
+					self.receive_queue.put(datalink)
 
 	def errorCorrect(self,transmission):
 		return transmission
