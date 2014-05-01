@@ -38,13 +38,10 @@ class MorrowNIC(object):
 		self.send_queue = send_queue
 		self.ack_send_queue = Queue()
 		self.last_ack_received = None
-		self.send_queue.put(DatalinkLayer("NIINIIE08EEAPPMSG"))
-		self.send_queue.put(DatalinkLayer("NIINIIE08EEHINICK"))
-		self.send_queue.put(DatalinkLayer("NIINIIE08EEMORROW"))
+
 		self.ack_wait = self.pulse_duration*100
-		self.send_thread = threading.Thread(target=self.send())
+		self.send_thread = threading.Thread(target=self.send)
 		self.send_thread.start()
-		print ("Look, I'm still executing code Ian!")
 
 	def edgeFound(self,pin):
 		self.current_edge = datetime.now()
@@ -171,4 +168,7 @@ if __name__ == "__main__":
 	receive_queue = Queue()
 	send_queue = Queue()
 	nic = MorrowNIC(receive_queue,send_queue)
+        self.send_queue.put(DatalinkLayer("NIINIIE08EEAPPMSG"))
+        self.send_queue.put(DatalinkLayer("NIINIIE08EEHINICK"))
+        self.send_queue.put(DatalinkLayer("NIINIIE08EEMORROW"))
 	
