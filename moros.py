@@ -26,7 +26,7 @@ import os
 
 # App Imports
 sys.path.insert(0,'ChatServer')
-import chatserver
+#import chatserver
 
 class MorOS(object):
     def __init__(self, timeout=1, debug=False):
@@ -130,10 +130,21 @@ class MorOS(object):
             msg = recv_queue.get(True, self.timeout)
             dest_port = msg.getPayload().getHeader(0)
 
+            if self.debug:
+                print("Message processed in the NIC:)
+                print(" Dest IP: {}").format(msg.getHeader(0))
+                print(" Src IP: {}").format(msg.getHeader(1))
+                print(" Dest Port: {}").format(msg.getPayload().getHeader(0))
+                print(" Src Port: {}").format(msg.getPayload().getHeader(1))
+                print(" Message: {}").format(msg.getPayload().getPayload())
+                print(" ")
+
             # If the message is addressed to an open app, pass on the message.
             # Otherwise, discard the message.
             if dest_port in self.apps:
                 self.apps[dest_port].recv_queue.put(msg)
+                if self.debug:
+                    print("Message passed along to an app running on port {}.").format(dest_port)
 
     def createMonitoredSendQueue(self):
         """ Creates and returns a monitored sending queue. """
