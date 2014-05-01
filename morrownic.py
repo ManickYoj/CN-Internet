@@ -86,12 +86,16 @@ class MorrowNIC(object):
 		if len(text) == 1:
 			self.last_ack_received = text
 		else:
-			datalink = DatalinkLayer(text)
-			dest = datalink.getDestMAC()
-			if dest == self.MAC:
-				print("Putting ack in queue: " + dest)
-				self.ack_send_queue.put(dest)
-				self.receive_queue.put(datalink)
+                        try:
+                                datalink = DatalinkLayer(text)
+                        except:
+                                pass
+                        else:
+                                dest = datalink.getDestMAC()
+                                if dest == self.MAC:
+                                        print("Putting ack in queue: " + dest)
+                                        self.ack_send_queue.put(dest)
+                                        self.receive_queue.put(datalink)
 
 	def errorCorrect(self,transmission):
 		return transmission
