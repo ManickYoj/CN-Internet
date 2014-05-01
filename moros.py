@@ -17,7 +17,7 @@ Operation:
 """
 
 # Functionality Imports
-#import morrownic
+import morrownic
 import queue as q
 import threading
 import time
@@ -39,10 +39,8 @@ class MorOS(object):
         self.close = False
 
         # Setup NIC message monitoring
-        recv_queue = self.createMonitoredRecvQueue()
-        if not debug:
-            import morrownic
-            self.nic = MorrowNIC(recv_queue)
+        recv_queue = self.createMonitoredRecvQueue() 
+        self.nic = MorrowNIC(recv_queue)
 
         # Run UI & Normal Operations
         self.runCLI()
@@ -131,7 +129,7 @@ class MorOS(object):
             dest_port = msg.getPayload().getHeader(0)
 
             if self.debug:
-                print("Message processed in the NIC:)
+                print("Message processed in the NIC:")
                 print(" Dest IP: {}").format(msg.getHeader(0))
                 print(" Src IP: {}").format(msg.getHeader(1))
                 print(" Dest Port: {}").format(msg.getPayload().getHeader(0))
@@ -160,7 +158,7 @@ class MorOS(object):
             if msg == str(self):
                 return
             else:
-                self.nic.send()
+                self.nic.send(msg)
 
     def __enter__(self):
         return self
