@@ -5,6 +5,7 @@ from queue import Queue
 from morrowutilities import charToBinaryDict,binaryToCharDict
 import threading
 from morrowstack import DatalinkLayer
+import mac
 
 #------------------SETUP------------------#
 GPIO.setwarnings(False)
@@ -15,9 +16,9 @@ GPIO.setup(input_pin,GPIO.IN)
 GPIO.setup(output_pin,GPIO.OUT)
 #------------------CLASS------------------#
 class MorrowNIC(object):
-	def __init__(self):
+	def __init__(self,receive_queue,send_queue):
 		self.all_pulses = []
-		self.MAC = 'I'
+		self.MAC = mac.my_mac
 		
 		self.pulse_duration = .01*1000000
 		self.pulse_width = None
@@ -25,7 +26,7 @@ class MorrowNIC(object):
 		self.previous_edge = datetime.now()
 		self.current_edge = None
 		
-		self.receive_queue = Queue()
+		self.receive_queue = receive_queue
 		self.pulse_queue = Queue()
 		
 		self.bus_state = GPIO.input(input_pin)
@@ -34,7 +35,7 @@ class MorrowNIC(object):
 		GPIO.add_event_detect(input_pin,GPIO.BOTH,callback=self.edgeFound)
 
 		self.running = True
-		self.send_queue = Queue()
+		self.send_queue = send_queue
 		self.ack_send_queue = Queue()
 		self.last_ack_received = None
 		self.send_queue.put(DatalinkLayer("NIINIIE08EEAPPMSG"))
@@ -167,5 +168,7 @@ class Datalink(object):
 
 if __name__ == "__main__":
 	s = .01
-	nic = MorrowNIC()
+	receive_queue = Queue()
+	send_queue = Queue()
+	nic = MorrowNIC(receive_queue,send_queue)
 	
