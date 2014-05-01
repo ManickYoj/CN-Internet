@@ -18,7 +18,7 @@ GPIO.output(output_pin,GPIO.LOW)
 GPIO.setup(output_pin,GPIO.IN)
 #------------------CLASS------------------#
 class MorrowNIC(object):
-	def __init__(self,receive_queue,send_queue):
+	def __init__(self,receive_queue):
 		self.all_pulses = []
 		self.MAC = mac.my_mac
 		
@@ -37,12 +37,12 @@ class MorrowNIC(object):
 		GPIO.add_event_detect(input_pin,GPIO.BOTH,callback=self.edgeFound)
 
 		self.running = True
-		self.send_queue = send_queue
+		self.send_queue = Queue()
 		self.ack_send_queue = Queue()
 		self.last_ack_received = None
 
 		self.ack_wait = self.pulse_duration*100
-		self.send_thread = threading.Thread(target=self.send)
+		self.send_thread = threading.Thread(target=self.sender)
 		self.send_thread.start()
 
 	def edgeFound(self,pin):
@@ -136,7 +136,7 @@ class MorrowNIC(object):
 		GPIO.output(output_pin,GPIO.LOW)
 		GPIO.setup(output_pin,GPIO.IN)
 
-	def send(self):
+	def sender(self):
 		while self.running:
 			if not self.ack_send_queue.empty():
 				transmission = self.convertToTransmission(self.ack_send_queue.get())
@@ -158,8 +158,8 @@ class MorrowNIC(object):
 						self.send_queue.put(datalink)
 			sleep((self.ack_wait/1000000)/4)
 
-	def sendMessage(self,IP):
-		dest = 'B'
+	def send(self,IP):
+		dest = IP.getHeader(0)[1]
 		datalink = DatalinkLayer(IP,(dest,self.MAC))
 		self.send_queue.put(datalink)
 		
@@ -172,8 +172,7 @@ class Datalink(object):
 if __name__ == "__main__":
 	s = .01
 	receive_queue = Queue()
-	send_queue = Queue()
-	nic = MorrowNIC(receive_queue,send_queue)
+	nic = MorrowNIC(receive_queue)
 	sleep(4)
 	nic.send_queue.put(DatalinkLayer("ININIIE08EEAPPMSG"))
 	nic.send_queue.put(DatalinkLayer("ININIIE08EEHINICK"))
