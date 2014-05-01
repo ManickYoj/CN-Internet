@@ -18,7 +18,8 @@ GPIO.output(output_pin,GPIO.LOW)
 GPIO.setup(output_pin,GPIO.IN)
 #------------------CLASS------------------#
 class MorrowNIC(object):
-	def __init__(self,receive_queue):
+	def __init__(self,receive_queue,debug=False):
+		self.debug = debug
 		self.all_pulses = []
 		self.MAC = mac.my_mac
 		
@@ -88,14 +89,14 @@ class MorrowNIC(object):
 		else:
 			try:
 				datalink = DatalinkLayer(text)
-			except:
+			except (AttributeError, IndexError, ValueError):
 				pass
 			else:
 				dest = datalink.getDestMAC()
 				if dest == self.MAC:
 					print("Putting ack in queue: " + dest)
 					self.ack_send_queue.put(dest)
-					self.receive_queue.put(datalink)
+					self.receive_queue.put(datalink.getPayload())
 
 	def errorCorrect(self,transmission):
 		return transmission

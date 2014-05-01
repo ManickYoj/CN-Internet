@@ -17,7 +17,7 @@ Operation:
 """
 
 # Functionality Imports
-import morrownic
+import morrownic as mn
 import queue as q
 import threading
 import time
@@ -33,20 +33,20 @@ class MorOS(object):
         self.debug = debug
 
         # Setup 
-        self.apps = dict()  # A dictionary of all of the Apps owned by the OS, with port/app_id as the key
+        self.apps = {}  # A dictionary of all of the Apps owned by the OS, with port/app_id as the key
         self.available_apps = ['router', 'chatserver'] # A list of the names of available programs
         self.timeout = timeout
         self.close = False
 
         # Setup NIC message monitoring
-        recv_queue = self.createMonitoredRecvQueue() 
-        self.nic = MorrowNIC(recv_queue)
-
+        recv_queue = self.createMonitoredRecvQueue()
+        self.nic = mn.MorrowNIC(recv_queue)
+        
         # Run UI & Normal Operations
-        self.runCLI()
+        #self.runCLI()
 
         # Shutdown Gracefully
-        self.__exit__()
+        #self.__exit__()
 
     # ------ Private UI Methods ----- #
 
@@ -115,7 +115,8 @@ class MorOS(object):
     def createMonitoredRecvQueue(self):
         """ Creates and returns a monitored recieving queue. """
         recv_queue = q.Queue()
-        threading.Thread(target=self.monitorRecv, args=[recv_queue])
+        recv_thread = threading.Thread(target=self.monitorRecv, args=[recv_queue])
+        recv_thread.start()
         return recv_queue
 
     def monitorRecv(self, recv_queue):
@@ -123,27 +124,32 @@ class MorOS(object):
         A thread-method that monitors the NIC's recieving queue and passes on its messages
         to the appropriate App, if one exists. 
         """
+        print("Queue Monitor Started.")
         while not self.close:
             # Get message from the NIC and check its destination port
-            msg = recv_queue.get(True, self.timeout)
-            dest_port = msg.getPayload().getHeader(0)
+            try:
+                msg = recv_queue.get(True, self.timeout)
+                dest_port = msg.getPayload().getHeader(0)
 
-            if self.debug:
-                print("Message processed in the NIC:")
-                print(" Dest IP: {}").format(msg.getHeader(0))
-                print(" Src IP: {}").format(msg.getHeader(1))
-                print(" Dest Port: {}").format(msg.getPayload().getHeader(0))
-                print(" Src Port: {}").format(msg.getPayload().getHeader(1))
-                print(" Message: {}").format(msg.getPayload().getPayload())
-                print(" ")
-
-            # If the message is addressed to an open app, pass on the message.
-            # Otherwise, discard the message.
-            if dest_port in self.apps:
-                self.apps[dest_port].recv_queue.put(msg)
                 if self.debug:
-                    print("Message passed along to an app running on port {}.").format(dest_port)
+                    print("Message processed in the NIC:")
+                    print(" Dest IP: {}".format(msg.getHeader(0)))
+                    print(" Src IP: {}".format(msg.getHeader(1)))
+                    print(" Dest Port: {}".format(msg.getPayload().getHeader(0)))
+                    print(" Src Port: {}".format(msg.getPayload().getHeader(1)))
+                    print(" Message: {}".format(msg.getPayload().getPayload()))
+                    print(" ")
 
+                # If the message is addressed to an open app, pass on the message.
+                # Otherwise, discard the message.
+                if dest_port in self.apps:
+                    self.apps[dest_port].recv_queue.put(msg)
+                    if self.debug:
+                        print("Message passed along to an app running on port {}.").format(dest_port)
+            except q.Empty:
+                continue
+
+            
     def createMonitoredSendQueue(self):
         """ Creates and returns a monitored sending queue. """
         send_queue = q.Queue()
