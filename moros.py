@@ -16,6 +16,7 @@ Operation:
         - Creates a socket keyed to the app_id
 """
 
+# Functionality Imports
 #import morrownic
 import queue as q
 import threading
@@ -23,6 +24,9 @@ import time
 import sys
 import os
 
+# App Imports
+sys.path.insert(0,'ChatServer')
+import chatserver
 
 class MorOS(object):
     def __init__(self, timeout=1, debug=False):
@@ -30,6 +34,7 @@ class MorOS(object):
 
         # Setup 
         self.apps = dict()  # A dictionary of all of the Apps owned by the OS, with port/app_id as the key
+        self.available_apps = ['router', 'chatserver'] # A list of the names of available programs
         self.timeout = timeout
         self.close = False
 
@@ -64,8 +69,10 @@ class MorOS(object):
             if cmd[0] == 'run' and len(cmd)>1:
                 if cmd[1] == 'router':
                     self.startRouterMode()
-                else:
+                elif cmd[1] in self.available_apps:
                     self.createApp(cmd[1])
+                else:
+                    print("Error: App does not exist!")
             elif cmd[0] == 'close':
                 return
             elif cmd[0] == 'help':
@@ -91,12 +98,11 @@ class MorOS(object):
         # Create a monitored sending queue for the app to use
         send_queue = self.createMonitoredSendQueue()
 
-        try:
-            new_app = App(app_id, send_queue, app_type)
-            self.apps[app_id] = new_app
-        except ValueError:
-            send_queue.put(str(self))
-            print("ERROR: No app with this name installed")
+        # Create a new app of specified app_type and add them to the app dictionary
+        new_app = None
+        if app_type == 'chatserver':
+            new_app = ChatServer(app_id, send_queue, app_type)
+        self.apps[app_id] = new_app
 
     def destroyApp(self, app_id):
         """ Gracefully exits the specified app and removes it from the OS's self.apps dict. """
@@ -167,33 +173,6 @@ class MorOS(object):
 
         # Exit program
         sys.exit(0)
-
-class App(object):
-    def __init__(self, app_id, send_queue, app_type):
-        if not app_type in ["chatserver"]:
-            raise ValueError("ERROR: No app with this name installed")
-
-        self.send_queue = send_queue
-        self.recv_queue = q.Queue()
-
-        self.initApp(app_type)
-
-    def initApp(self, app_type):
-        if app_type == 'chatserver':
-            self.app = ExtChatServer()
-
-# Import the chatserver module
-sys.path.append('ChatServer')
-from chatserver import ChatServer
-
-class ExtChatServer(ChatServer):
-    def __init__(self):
-        print("ExtChatServer!")
-
-
-class Socket(object):
-    def __init__(self):
-        print("Socket!")
 
 if __name__ == "__main__":
     os = MorOS(debug=True)
