@@ -22,6 +22,8 @@ class MorrowNIC(object):
 		self.debug = debug
 		self.all_pulses = []
 		self.MAC = mac.my_mac
+		self.mac_dict = {'router':'R'}
+		self.ip = None
 		
 		self.pulse_duration = .008*1000000
 		self.pulse_width = None
@@ -45,6 +47,8 @@ class MorrowNIC(object):
 		self.ack_wait = self.pulse_duration*100
 		self.send_thread = threading.Thread(target=self.sender)
 		self.send_thread.start()
+		if self.mac != self.mac_dict['router']:
+			self.send_queue.put(DatalinkLayer("0000E0300E",(self.mac_dict['router'],self.mac)))
 
 	def edgeFound(self,pin):
 		self.current_edge = datetime.now()
@@ -92,11 +96,24 @@ class MorrowNIC(object):
 			except (AttributeError, IndexError, ValueError):
 				pass
 			else:
+				self.updateMacDict(datalink)
 				dest = datalink.getDestMAC()
 				if dest == self.MAC:
 					print("Putting ack in queue: " + dest)
 					self.ack_send_queue.put(dest)
 					self.receive_queue.put(datalink.getPayload())
+
+	def updateMacDict(self,datalink):
+		dest_mac = datalink.getHeader(0)
+		source_mac = datalink.getHeader(1)
+		dest_ip = datalink.payload.getHeader(0)
+		source_ip = datalink.payload.getHeader(1)
+		if self.ip == None:
+			self.ip == dest_ip
+		if dest_mac != self.mac_dict['router']:
+			self.mac_dict[dest_ip] = dest_mac
+		if source_mac != self.mac_dict['router']:
+			self.mac_dict[source_ip] = source_mac
 
 	def errorCorrect(self,transmission):
 		return transmission
@@ -160,8 +177,12 @@ class MorrowNIC(object):
 			sleep((self.ack_wait/1000000)/4)
 
 	def send(self,IP):
-		dest = IP.getHeader(0)[1]
-		datalink = DatalinkLayer(IP,(dest,self.MAC))
+		dest_ip = IP.getHeader(0)[1]
+		if dest_ip in self.mac_dict:
+			dest_mac = self.mac_dict[dest_ip]
+		else:
+			dest_mac = self.mac_dict['router']
+		datalink = DatalinkLayer(IP,(dest_mac,self.MAC))
 		self.send_queue.put(datalink)
 		
 			
@@ -175,7 +196,7 @@ if __name__ == "__main__":
 	receive_queue = Queue()
 	nic = MorrowNIC(receive_queue)
 	sleep(4)
-	nic.send_queue.put(DatalinkLayer("ININIIE08EEAPPMSG"))
-	nic.send_queue.put(DatalinkLayer("ININIIE08EEHINICK"))
-	nic.send_queue.put(DatalinkLayer("ININIIE08EEMORROW"))
+	#nic.send_queue.put(DatalinkLayer("ININIIE08EEAPPMSG"))
+	#nic.send_queue.put(DatalinkLayer("ININIIE08EEHINICK"))
+	#nic.send_queue.put(DatalinkLayer("ININIIE08EEMORROW"))
 	
