@@ -9,11 +9,6 @@ New apps are instantiated from here and this class
 controls and distributes resources. It owns the singleton
 NIC class and is itself a singleton.
 
-Operation:
-    - On boot: starts a NIC layer and runs a thread that:
-        - When the queue from 
-    - Allows the user to boot apps. On app boot:
-        - Creates a socket keyed to the app_id
 """
 
 # Functionality Imports
@@ -25,23 +20,26 @@ import sys
 import os
 
 # App Imports
-sys.path.insert(0,'ChatServer')
-#import chatserver
+sys.path.insert(0, 'ChatServer')
+import chatserver as cs
+
 
 class MorOS(object):
+
     def __init__(self, timeout=1, debug=False):
         self.debug = debug
 
-        # Setup 
+        # Setup
         self.apps = {}  # A dictionary of all of the Apps owned by the OS, with port/app_id as the key
-        self.available_apps = ['router', 'chatserver'] # A list of the names of available programs
+        self.available_apps = ['router', 'chatserver']  # A list of the names of available programs
         self.timeout = timeout
         self.close = False
 
         # Setup NIC message monitoring
         recv_queue = self.createMonitoredRecvQueue()
         self.nic = mn.MorrowNIC(recv_queue)
-        
+
+        self.createApp("chatserver")
         # Run UI & Normal Operations
         #self.runCLI()
 
@@ -61,10 +59,10 @@ class MorOS(object):
             cmd = input('Cmd: ')
             cmd = cmd.split()
 
-            if len(cmd)<1:
+            if len(cmd) < 1:
                 cmd = "ERROR"
 
-            if cmd[0] == 'run' and len(cmd)>1:
+            if cmd[0] == 'run' and len(cmd) > 1:
                 if cmd[1] == 'router':
                     self.startRouterMode()
                 elif cmd[1] in self.available_apps:
@@ -99,7 +97,7 @@ class MorOS(object):
         # Create a new app of specified app_type and add them to the app dictionary
         new_app = None
         if app_type == 'chatserver':
-            new_app = ChatServer(app_id, send_queue)
+            new_app = cs.ChatServer(app_id, send_queue)
         self.apps[app_id] = new_app
 
     def destroyApp(self, app_id):
@@ -122,9 +120,8 @@ class MorOS(object):
     def monitorRecv(self, recv_queue):
         """
         A thread-method that monitors the NIC's recieving queue and passes on its messages
-        to the appropriate App, if one exists. 
+        to the appropriate App, if one exists.
         """
-        print("Queue Monitor Started.")
         while not self.close:
             # Get message from the NIC and check its destination port
             try:
@@ -149,11 +146,11 @@ class MorOS(object):
             except q.Empty:
                 continue
 
-            
     def createMonitoredSendQueue(self):
         """ Creates and returns a monitored sending queue. """
         send_queue = q.Queue()
-        threading.Thread(target=self.monitorSend, args=[send_queue])
+        send_thread = threading.Thread(target=self.monitorSend, args=[send_queue])
+        send_thread.start()
         return send_queue
 
     def monitorSend(self, send_queue):
