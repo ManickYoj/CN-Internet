@@ -1,3 +1,5 @@
+#TODO OPCODES! YAY!
+
 import MorrowSocket as ms
 
 class App(object):

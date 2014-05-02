@@ -1,3 +1,20 @@
+"""
+morrowsocket.py
+---------------
+Author: Nick Francisci
+Status: Complete & Partially Tested
+Description: 
+The replacement for sockets in our stack, expected to be
+used with any app that extends the App class. An app that
+extends the app class will automatically have a properly
+configured socket available to it simply as self.socket
+
+TODO: 
+- Less hardcoding/more portability for other AFs/protocols
+- Mo' Docstrings
+
+"""
+
 import morrowstack as ms
 import queue as q
 
@@ -11,12 +28,13 @@ class MorrowSocket(object):
 		self.debug = debug
 
 		self.port = port
-		self.ip = '0.0.48.48' # Corresponds to a Morse '00'
+		self.ip = '0.0.48.48' # Corresponds to a Morse '00' 
+							  # (which should automatically trigger an IP assignment request from the router)
 
 		self.send_queue = send_queue
 		self.recv_queue = q.Queue()
+		self.timeout = None
 
-		self.timeout = 2
 		self.family = family
 		self.protocol = protocol
 		self.protocols = {protocol: 'E'} # Heh... 
@@ -30,7 +48,7 @@ class MorrowSocket(object):
 	# ----- Public Methods ----- #
 	def bind(self, address):
 		self.ip = address[0]
-		self.port = address[1]
+		#self.port = address[1] # Double Heh...
 
 		if self.debug:
 			print("Socket bound with IP {} and port {}").format(self.ip, self.port)
@@ -42,7 +60,7 @@ class MorrowSocket(object):
 		# Construct UDP Layer
 		dest_port = self.IPV4ToMorse(address[1])
 		src_port = self.IPV4ToMorse(self.port)
-		udp = ms.UDPLayer(msg, (dest_port, src_port))
+		udp = ms.UDPLayer(msg.decode("UTF-8"), (dest_port, src_port))
 
 		# Construct IP Layer
 		dest_ip = self.IPV4ToMorse(address[0])
@@ -53,11 +71,14 @@ class MorrowSocket(object):
 		send_queue.put(ip)
 
 	def recvfrom(self, buflen=65536):
-		ip = self.recv_queue.get(True, self.timeout)
-		if ip.getLength() < buflen:
-			address = (self.MorseToIPV4(ip.getHeader(1)), self.MorseToIPV4(ip.getPayload().getHeader(1)))
-			msg = ip.getPayload().getPayload().encode("UTF-8")
-			return msg, address
+		try:
+			ip = self.recv_queue.get(True, self.timeout)
+			if ip.getLength() < buflen:
+				address = (self.MorseToIPV4(ip.getHeader(1)), self.MorseToIPV4(ip.getPayload().getHeader(1)))
+				msg = ip.getPayload().getPayload().encode("UTF-8")
+				return msg, address
+		except q.Empty:
+			raise RuntimeException("No messages available.")
 
 	def putmsg(self, msg):
 		self.recv_queue.put(msg)
@@ -87,11 +108,10 @@ class MorrowSocket(object):
 # ------ Unit Testing ----- #
 msock = MorrowSocket(send_queue = q.Queue(), debug=True)
 
+# Test Recv Functionality
 udp = ms.UDPLayer("APPMSG", ("E", "E"))
 ip = ms.IPLayer(udp, ("IN", "II"), "E")
 msock.putmsg(ip)
 msg, address = msock.recvfrom()
 print(msg.decode("UTF-8"))
 print(address)
-
-print(msock.sendms)
