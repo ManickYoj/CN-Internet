@@ -187,4 +187,4 @@ class MorOS(object):
         sys.exit(0)
 
 if __name__ == "__main__":
-    os = MorOS(debug=True)
+    moros = MorOS(debug=False)
