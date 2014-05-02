@@ -8,7 +8,7 @@ from morrowstack import DatalinkLayer
 import mac
 from morrownic import MorrowNIC
 import random
-import socket as CN_Sockets
+import socket as s
 
 #------------------SETUP------------------#
 GPIO.setwarnings(False)
@@ -26,17 +26,14 @@ class Router(MorrowNIC):
 		     "T":"192.168.100.84",
 		     "R":"192.168.100.82"
 		    }
-	socket, AF_INET, SOCK_DGRAM, timeout = CN_Sockets.socket, CN_Sockets.AF_INET, CN_Sockets.SOCK_DGRAM, CN_Sockets.timeout
+	socket, AF_INET, SOCK_DGRAM, timeout = s.socket, s.AF_INET, s.SOCK_DGRAM, s.timeout
 
 	def __init__(self):
 
 		self.group = mac.my_group
-		self.receive_queue = Queue()
-		self.Router_Address = Router_Address = ("192.168.100.73",5073)
-		self.socket = socket(AF_INET,SOCK_DGRAM)
-		self.socket.bind(Router_Address)
-		self.socket.settimeout(2.0)
+		self.Router_Address = ("192.168.100.73",5073)
 
+		receive_queue = Queue()
 
 		super(Router,self).__init__(receive_queue)
 		self.mac = 'R'
@@ -48,7 +45,9 @@ class Router(MorrowNIC):
 
 	def routeEthernetToMorse(self):
 
-		with self.socket as sock:
+		with s.socket(s.AF_INET,s.SOCK_DGRAM) as sock:
+			sock.bind(self.Router_Address)
+			sock.settimeout(2.0)
 			while True:
 				try:
 
@@ -76,7 +75,9 @@ class Router(MorrowNIC):
 
 	def routeMorseToEthernet(self):
 		
-		with self.socket as sock:
+		with s.socket(s.AF_INET,s.SOCK_DGRAM) as sock:
+			sock.bind(self.Router_Address)
+			sock.settimeout(2.0)
 			
 			while True:
 				try:
@@ -110,4 +111,4 @@ class Router(MorrowNIC):
 				    # standby_display(".") # print standby dots on the same line
 				    continue
 if __name__ == "__main__":
-        router = Router()
+	router = Router()
