@@ -99,7 +99,7 @@ class MorOS(object):
         # Create a new app of specified app_type and add them to the app dictionary
         new_app = None
         if app_type == 'chatserver':
-            new_app = ChatServer(app_id, send_queue, app_type)
+            new_app = ChatServer(app_id, send_queue)
         self.apps[app_id] = new_app
 
     def destroyApp(self, app_id):
@@ -143,7 +143,7 @@ class MorOS(object):
                 # If the message is addressed to an open app, pass on the message.
                 # Otherwise, discard the message.
                 if dest_port in self.apps:
-                    self.apps[dest_port].recv_queue.put(msg)
+                    self.apps[dest_port].pushRecvdMsg(msg)
                     if self.debug:
                         print("Message passed along to an app running on port {}.").format(dest_port)
             except q.Empty:
