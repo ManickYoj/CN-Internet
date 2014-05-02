@@ -21,7 +21,7 @@ class MorrowNIC(object):
 	def __init__(self,receive_queue,debug=False):
 		self.debug = debug
 		self.all_pulses = []
-		self.MAC = mac.my_mac
+		self.mac = mac.my_mac
 		self.mac_dict = {'router':'R'}
 		self.ip = None
 		
@@ -98,7 +98,7 @@ class MorrowNIC(object):
 			else:
 				self.updateMacDict(datalink)
 				dest = datalink.getDestMAC()
-				if dest == self.MAC:
+				if dest == self.mac:
 					print("Putting ack in queue: " + dest)
 					self.ack_send_queue.put(dest)
 					self.receive_queue.put(datalink.getPayload())
@@ -182,7 +182,7 @@ class MorrowNIC(object):
 			dest_mac = self.mac_dict[dest_ip]
 		else:
 			dest_mac = self.mac_dict['router']
-		datalink = DatalinkLayer(IP,(dest_mac,self.MAC))
+		datalink = DatalinkLayer(IP,(dest_mac,self.mac))
 		self.send_queue.put(datalink)
 		
 			
