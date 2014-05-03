@@ -101,7 +101,10 @@ class MorrowNIC(object):
 				if dest == self.mac:
 					print("Putting ack in queue: " + dest)
 					self.ack_send_queue.put(dest)
-					self.receive_queue.put(datalink.getPayload())
+					self.forward(datalink)
+
+	def forward(self,datalink):
+		self.receive_queue.put(datalink.getPayload())
 
 	def updateMacDict(self,datalink):
 		dest_mac = datalink.getHeader(0)
