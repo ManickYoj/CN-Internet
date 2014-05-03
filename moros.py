@@ -96,9 +96,15 @@ class MorOS(object):
 
         # Create a new app of specified app_type and add them to the app dictionary
         new_app = None
+        if self.debug:
+            print("Attempting to start a {} on port {}.".format(app_type, chr(app_id)))
         if app_type == 'chatserver':
             new_app = cs.ChatServer(app_id, send_queue)
-        self.apps[app_id] = new_app
+        if new_app:
+            self.apps[chr(app_id)] = new_app
+            if self.debug:
+                print("App started successfully!")
+            
 
     def destroyApp(self, app_id):
         """ Gracefully exits the specified app and removes it from the OS's self.apps dict. """
@@ -143,7 +149,7 @@ class MorOS(object):
                 if dest_port in self.apps:
                     self.apps[dest_port].pushRecvdMsg(msg)
                     if self.debug:
-                        print("Message passed along to an app running on port {}.").format(dest_port)
+                        print("Message passed along to an app running on port {}.".format(dest_port))
             except q.Empty:
                 continue
 
@@ -191,4 +197,4 @@ class MorOS(object):
         sys.exit(0)
 
 if __name__ == "__main__":
-    moros = MorOS(debug=True)
+    moros = MorOS(debug=False)

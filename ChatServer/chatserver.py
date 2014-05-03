@@ -1,6 +1,6 @@
 from app import App
 import queue as q
-
+import threading as t
 
 class ChatServer(App):
 
@@ -9,11 +9,18 @@ class ChatServer(App):
         self.serverlog = []
         self.ips = []
         self.buflen = 65500
+        
+        self.ip = ip
+        self.port = port
+        
+        server_thread = t.Thread(target=self.runServer)
+        server_thread.start()
 
+    def runServer(self):
         # Socket setup
-        self.socket.bind((ip, port))
+        self.socket.bind((self.ip, self.port))
         self.socket.settimeout(1)
-        print("Chat Server started on IP Address {}, port {}".format(ip, port))
+        print("Chat Server started on IP Address {}, port {}".format(self.ip, self.port))
 
         # Main loop
         while True:
@@ -23,7 +30,6 @@ class ChatServer(App):
                 bytearray_msg, address = data
                 src_ip, src_port = address
                 msg = bytearray_msg.decode("UTF-8")
-                print("test")
 
                 # Message display & logging
                 print("\nMessage received from ip address {}, port {}:".format(src_ip, src_port))
@@ -49,8 +55,8 @@ class ChatServer(App):
         self.socket.sendto(msg.encode("UTF-8"), address)
 
         # Display and log on server
-        self.serverlog.append(msg)
-        print(msg)
+        #self.serverlog.append(msg)
+        #print(msg)
 
     def relayMessage(self, msg, src_ip):
         if len(msg) >= self.buflen:

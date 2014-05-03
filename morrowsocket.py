@@ -26,7 +26,7 @@ timeout = 2
 class MorrowSocket(object):
 
     # ----- System Methods ----- #
-    def __init__(self, family=2, protocol=2, port=69, send_queue=None, debug=True):
+    def __init__(self, family=2, protocol=2, port=69, send_queue=None, debug=False):
         self.debug = debug
 
         self.port = port
@@ -40,6 +40,9 @@ class MorrowSocket(object):
         self.family = family
         self.protocol = protocol
         self.protocols = {protocol: 'E'}  # Heh...
+
+        if self.debug:
+            print("Socket started up with IP {} and port {} using queue {}".format(self.ip,self.port,self.send_queue))
 
     def __enter__(self):
         return self
@@ -95,6 +98,8 @@ class MorrowSocket(object):
 
     def putmsg(self, msg):
         self.recv_queue.put(msg)
+        if self.debug:
+            print("Added a message to the recieve queue.")
 
     # ----- Private Methods ----- #
     def IPV4ToMorse(self, ipv4):

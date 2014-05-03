@@ -48,7 +48,7 @@ class MorrowNIC(object):
 		self.send_thread = threading.Thread(target=self.sender)
 		self.send_thread.start()
 		#if self.mac != self.mac_dict['router']:
-			#self.send_queue.put(DatalinkLayer(self.mac_dict['router'] + self.mac + "0000E0300E"))
+		#	self.send_queue.put(DatalinkLayer(self.mac_dict['router'] + self.mac + "0000E0300E"))
 
 	def edgeFound(self,pin):
 		self.current_edge = datetime.now()
@@ -88,8 +88,8 @@ class MorrowNIC(object):
 		#---TO BE EDITED---#
 		text = self.convertToText(transmission)
 		if text == "":
-                        print("Received Nothing")
-                        return
+			print("Received Nothing")
+			return
 		print("Received: " + text)
 		if len(text) == 1:
 			self.last_ack_received = text
@@ -139,9 +139,9 @@ class MorrowNIC(object):
 			sections = sections[:-1]
 		#print(sections)
 		try:
-                        text = ''.join([binaryToCharDict[binary] for binary in sections])
-                except:
-                        text = ""
+			text = ''.join([binaryToCharDict[binary] for binary in sections])
+		except:
+			text = ""
 		return text
 
 	def convertToTransmission(self,text):
