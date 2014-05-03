@@ -84,37 +84,32 @@ class Router(MorrowNIC):
 	
 		sock = self.socket
 		while True:
-			try:
-				print("*")
-				datalink = self.receive_queue.get(True)
-				if not datalink: raise timeout
-				dest_mac = datalink.getHeader(0)
-				source_mac = datalink.getHeader(1)
-				dest_ip = datalink.payload.getHeader(0)
-				source_ip = datalink.payload.getHeader(1)
-				dest_group = dest_ip[0]
-				source_group = source_ip[0]
+			print("*")
+			datalink = self.receive_queue.get(True)
+			dest_mac = datalink.getHeader(0)
+			source_mac = datalink.getHeader(1)
+			dest_ip = datalink.payload.getHeader(0)
+			source_ip = datalink.payload.getHeader(1)
+			dest_group = dest_ip[0]
+			source_group = source_ip[0]
 
-				if self.mac == dest_mac and self.group == dest_group:
-					datalink.setHeader((self.registry[dest_ip],source_mac))
+			if self.mac == dest_mac and self.group == dest_group:
+				datalink.setHeader((self.registry[dest_ip],source_mac))
+				self.send_queue.put(datalink)
+			elif self.mac == dest_mac and self.group != dest_group:
+				if dest_ip == '00' and source_ip == '00' and source_mac not in self.registry.values():
+					new_ip = ""
+					while new_ip in self.registry:
+						new_ip = self.group + chr(random.randint(65,90))
+					self.registry[new_ip] = source_mac
+					datalink.setHeader((source_mac,self.mac))
+					datalink.payload.setHeader((new_ip,'00'))
 					self.send_queue.put(datalink)
-				elif self.mac == dest_mac and self.group != dest_group:
-					if dest_ip == '00' and source_ip == '00' and source_mac not in self.registry.values():
-						new_ip = ""
-						while new_ip in self.registry:
-							new_ip = self.group + chr(random.randint(65,90))
-						rself.registry[new_ip] = source_mac
-						datalink.setHeader((source_mac,self.mac))
-						datalink.payload.setHeader((new_ip,'00'))
-						self.send_queue.put(datalink)
-					else:
-						bytearray_ipheader_udpheader_msg = bytearray(str(datalink.payload), encoding='UTF-8')
-						dst_group_router = self.router_eth_ip[destination_group]
-						sock.sendto(bytearray_ipheader_udpheader_msg, dst_group_router)
+				else:
+					bytearray_ipheader_udpheader_msg = bytearray(str(datalink.payload), encoding='UTF-8')
+					dst_group_router = self.router_eth_ip[destination_group]
+					sock.sendto(bytearray_ipheader_udpheader_msg, dst_group_router)
 
-			except timeout:
-			    # standby_display(".") # print standby dots on the same line
-			    continue
 
 	
 		
