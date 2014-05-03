@@ -108,8 +108,8 @@ class MorrowNIC(object):
 		source_mac = datalink.getHeader(1)
 		dest_ip = datalink.payload.getHeader(0)
 		source_ip = datalink.payload.getHeader(1)
-		if self.ip == None:
-			self.ip == dest_ip
+		if self.ip == None and self.mac == dest_mac:
+			self.ip = dest_ip
 			print("Self.ip: " + self.ip)
 		if dest_mac != self.mac_dict['router']:
 			self.mac_dict[dest_ip] = dest_mac
@@ -197,6 +197,7 @@ if __name__ == "__main__":
 	receive_queue = Queue()
 	nic = MorrowNIC(receive_queue)
 	sleep(4)
+	print(nic.mac)
 	#nic.send_queue.put(DatalinkLayer("ININIIE08EEAPPMSG"))
 	#nic.send_queue.put(DatalinkLayer("ININIIE08EEHINICK"))
 	#nic.send_queue.put(DatalinkLayer("ININIIE08EEMORROW"))
