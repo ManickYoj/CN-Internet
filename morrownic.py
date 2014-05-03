@@ -88,8 +88,8 @@ class MorrowNIC(object):
 		#---TO BE EDITED---#
 		text = self.convertToText(transmission)
 		if text == "":
-                        print("Received Nothing")
-                        return
+			print("Received Nothing")
+			return
 		print("Received: " + text)
 		if len(text) == 1:
 			self.last_ack_received = text
@@ -117,9 +117,9 @@ class MorrowNIC(object):
 		if self.ip == None and self.mac == dest_mac:
 			self.ip = dest_ip
 			print("Self.ip: " + self.ip)
-		if dest_mac != self.mac_dict['router']:
+		if dest_mac != self.mac_dict['router'] and dest_ip != '00':
 			self.mac_dict[dest_ip] = dest_mac
-		if source_mac != self.mac_dict['router']:
+		if source_mac != self.mac_dict['router'] and source_ip != '00':
 			self.mac_dict[source_ip] = source_mac
 
 	def errorCorrect(self,transmission):
@@ -139,9 +139,9 @@ class MorrowNIC(object):
 			sections = sections[:-1]
 		#print(sections)
 		try:
-                        text = ''.join([binaryToCharDict[binary] for binary in sections])
-                except:
-                        text = ""
+			text = ''.join([binaryToCharDict[binary] for binary in sections])
+		except:
+			text = ""
 		return text
 
 	def convertToTransmission(self,text):
