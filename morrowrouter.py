@@ -56,8 +56,6 @@ class Router(MorrowNIC):
 		sock = self.socket
 		while True:
 			try:
-				print(".")
-
 				bytearray_ipheader_udpheader_msg, other_router_address = sock.recvfrom(1024)
 				source_IP, source_port = other_router_address
 				    
@@ -65,10 +63,7 @@ class Router(MorrowNIC):
 				    
 				    # --- relies on IP/UDP Protocal written by Hill et al --- #
 				ipheader = ipheader_udpheader_msg[:7] # eg.'EA' + 'IB' + 'E' + 'EA'
-				    #udpheader = ipheader_udpheader_msg[7:9] # eg. 'B' + 'C'
-				    #msg = ipheader_udpheader_msg[9:]
 				dst_ip, src_ip = ipheader[:2], ipheader[2:4] # ipheader example: 'EA' + 'IB' + 'E' + 'EA' where 'EA' is ip_to, 'IB' is ip_from
-				    #dst_port, src_port = udpheader # udpheader example: 'BC' where B udp_to, C udp_from
 						   
 				print("Message routing from Ethernet to Morse:")
 				print(ipheader_udpheader_msg)
@@ -84,7 +79,6 @@ class Router(MorrowNIC):
 	
 		sock = self.socket
 		while True:
-			print("*")
 			datalink = self.receive_queue.get(True)
 			dest_mac = datalink.getHeader(0)
 			source_mac = datalink.getHeader(1)
@@ -99,15 +93,18 @@ class Router(MorrowNIC):
 			elif self.mac == dest_mac and self.group != dest_group:
 				if dest_ip == '00' and source_ip == '00' and source_mac not in self.registry.values():
 					new_ip = ""
-					while new_ip in self.registry:
+					while True:
 						new_ip = self.group + chr(random.randint(65,90))
+						if new_ip not in self.registry:
+							break
 					self.registry[new_ip] = source_mac
 					datalink.setHeader((source_mac,self.mac))
 					datalink.payload.setHeader((new_ip,'00'))
 					self.send_queue.put(datalink)
+					print(self.registry)
 				else:
 					bytearray_ipheader_udpheader_msg = bytearray(str(datalink.payload), encoding='UTF-8')
-					dst_group_router = self.router_eth_ip[destination_group]
+					dst_group_router = self.router_eth_ip[dest_group]
 					sock.sendto(bytearray_ipheader_udpheader_msg, dst_group_router)
 
 
