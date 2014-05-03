@@ -25,7 +25,7 @@ class MorrowNIC(object):
 		self.mac_dict = {'router':'R'}
 		self.ip = None
 		
-		self.pulse_duration = .008*1000000
+		self.pulse_duration = .01*1000000
 		self.pulse_width = None
 
 		self.previous_edge = datetime.now()
@@ -57,9 +57,9 @@ class MorrowNIC(object):
 		self.previous_edge = self.current_edge
 		self.bus_state = GPIO.input(input_pin)
 		self.all_pulses.append(pulse)
-		if pulse[0] and pulse[1] >= 3.5*self.pulse_duration:
+		if pulse[0] and pulse[1] >= 8*self.pulse_duration:
 			if not self.receiving_state:
-				self.pulse_width = pulse[1]/4.0
+				self.pulse_width = pulse[1]/9.0
 			if self.receiving_state:
 				self.evaluateTransmission()
 			self.receiving_state = not self.receiving_state
@@ -87,6 +87,9 @@ class MorrowNIC(object):
 		transmission = self.errorCorrect(transmission)
 		#---TO BE EDITED---#
 		text = self.convertToText(transmission)
+		if text == "":
+                        print("Received Nothing")
+                        return
 		print("Received: " + text)
 		if len(text) == 1:
 			self.last_ack_received = text
@@ -101,14 +104,17 @@ class MorrowNIC(object):
 				if dest == self.mac:
 					print("Putting ack in queue: " + dest)
 					self.ack_send_queue.put(dest)
-					self.receive_queue.put(datalink.getPayload())
+					self.forward(datalink)
+
+	def forward(self,datalink):
+		self.receive_queue.put(datalink.getPayload())
 
 	def updateMacDict(self,datalink):
 		dest_mac = datalink.getHeader(0)
 		source_mac = datalink.getHeader(1)
 		dest_ip = datalink.payload.getHeader(0)
 		source_ip = datalink.payload.getHeader(1)
-		if self.ip == None:
+		if self.ip == None and self.mac == dest_mac:
 			self.ip = dest_ip
 			print("Self.ip: " + self.ip)
 		if dest_mac != self.mac_dict['router']:
@@ -132,14 +138,17 @@ class MorrowNIC(object):
 		if sections[-1] == "0000":
 			sections = sections[:-1]
 		#print(sections)
-		text = ''.join([binaryToCharDict[binary] for binary in sections])
+		try:
+                        text = ''.join([binaryToCharDict[binary] for binary in sections])
+                except:
+                        text = ""
 		return text
 
 	def convertToTransmission(self,text):
 		while text[0] == " ":
 			text = text[1:]
 		text = text.upper()
-		marker_code = "11110"
+		marker_code = "1111111110"
 		binary = ''.join([charToBinaryDict[char] for char in text])
 		return marker_code + binary + marker_code
 	
