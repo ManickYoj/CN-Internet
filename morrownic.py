@@ -48,7 +48,7 @@ class MorrowNIC(object):
 		self.send_thread = threading.Thread(target=self.sender)
 		self.send_thread.start()
 		if self.mac != self.mac_dict['router']:
-			self.send_queue.put(DatalinkLayer("0000E0300E",(self.mac_dict['router'],self.mac)))
+			self.send_queue.put(DatalinkLayer(self.mac_dict['router'] + self.mac + "0000E0300E"))
 
 	def edgeFound(self,pin):
 		self.current_edge = datetime.now()
@@ -110,6 +110,7 @@ class MorrowNIC(object):
 		source_ip = datalink.payload.getHeader(1)
 		if self.ip == None:
 			self.ip == dest_ip
+			print("Self.ip: " + self.ip)
 		if dest_mac != self.mac_dict['router']:
 			self.mac_dict[dest_ip] = dest_mac
 		if source_mac != self.mac_dict['router']:
