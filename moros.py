@@ -129,7 +129,8 @@ class MorOS(object):
                 dest_port = msg.getPayload().getHeader(0)
 
                 if self.debug:
-                    print("Message processed in the NIC:")
+                    time.sleep(.01)
+                    print("Message processed in the OS:")
                     print(" Dest IP: {}".format(msg.getHeader(0)))
                     print(" Src IP: {}".format(msg.getHeader(1)))
                     print(" Dest Port: {}".format(msg.getPayload().getHeader(0)))
@@ -156,12 +157,15 @@ class MorOS(object):
     def monitorSend(self, send_queue):
         """ A thread-method to send any messages in the passed send_queue. """
         while not self.close:
-            msg = send_queue.get(True, self.timeout)
+            try:
+                msg = send_queue.get(True, self.timeout)
 
-            if msg == str(self):
-                return
-            else:
-                self.nic.send(msg)
+                if msg == str(self):
+                    return
+                else:
+                    self.nic.send(msg)
+            except q.Empty:
+                continue
 
     def __enter__(self):
         return self
@@ -187,4 +191,4 @@ class MorOS(object):
         sys.exit(0)
 
 if __name__ == "__main__":
-    moros = MorOS(debug=False)
+    moros = MorOS(debug=True)
