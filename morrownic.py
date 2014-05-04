@@ -257,6 +257,9 @@ class MorrowNIC(object):
 		datalink = DatalinkLayer(IP,(dest_mac,self.mac))
 		self.send_queue.put(datalink)
 
+	def getIP(self):
+		return self.ip
+
 if __name__ == "__main__":
 	s = .01
 	receive_queue = Queue()
