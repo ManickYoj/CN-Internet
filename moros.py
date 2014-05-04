@@ -104,7 +104,6 @@ class MorOS(object):
             self.apps[chr(app_id)] = new_app
             if self.debug:
                 print("App started successfully!")
-            
 
     def destroyApp(self, app_id):
         """ Gracefully exits the specified app and removes it from the OS's self.apps dict. """
