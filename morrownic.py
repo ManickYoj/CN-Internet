@@ -143,13 +143,16 @@ class MorrowNIC(object):
 		and allows the NIC to set its IP address
 		from a transmission sent by the router
 		"""
+		#-----------------------Unpack------------------------#
 		dest_mac = datalink.getHeader(0)
 		source_mac = datalink.getHeader(1)
 		dest_ip = datalink.payload.getHeader(0)
 		source_ip = datalink.payload.getHeader(1)
+		#---------------------Assign IP-----------------------#
 		if self.ip == None and self.mac == dest_mac:
 			self.ip = dest_ip
 			if self.debug: print("Self.ip: " + self.ip)
+		#-------------Accumulate MAC information--------------#
 		if dest_mac != self.mac_dict['router'] and dest_ip != '00':
 			self.mac_dict[dest_ip] = dest_mac
 		if source_mac != self.mac_dict['router'] and source_ip != '00':
@@ -218,11 +221,13 @@ class MorrowNIC(object):
 		the messages
 		"""
 		while self.running:
+			#----------------------Send Acks----------------------#
 			if not self.ack_send_queue.empty():
 				transmission = self.convertToTransmission(self.ack_send_queue.get())
 				sleep(self.pulse_duration*5/1000000)
 				self.transmit(transmission)
 				if self.debug: print("Sent ack")
+			#-----------------Send Transmissions------------------#
 			elif not self.send_queue.empty():
 				difference = (datetime.now()-self.previous_edge)
 				if (difference.seconds*1000000 + difference.microseconds) > self.ack_wait:
@@ -230,6 +235,7 @@ class MorrowNIC(object):
 					transmission = self.convertToTransmission(str(datalink))
 					self.transmit(transmission)
 					if self.debug: print("Sent transmission")
+					#-----------------Handle Ack------------------#
 					sleep(self.ack_wait/1000000)
 					if self.last_ack_received == datalink.getDestMAC():
 						if self.debug: print("Ack received: " + self.last_ack_received)
