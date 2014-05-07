@@ -90,7 +90,7 @@ class Router(MorrowNIC):
 				dest_mac, source_mac= self.registry[IP.getHeader(0)], self.mac
 				self.send_queue.put(DatalinkLayer(IP,(dest_mac,source_mac)))
 
-				if verbose:
+				if self.verbose:
 					print("Message received on Ethernet. Routed to MorrowNet.")
 					print(" Src Router: {}".format(source_IP))
 					print(" Dest MAC: {}".format(dest_mac))
@@ -123,7 +123,7 @@ class Router(MorrowNIC):
 			if self.mac == dest_mac and self.group == dest_group:
 				datalink.setHeader((self.registry[dest_ip],source_mac))
 				self.send_queue.put(datalink)
-				if verbose:
+				if self.verbose:
 					print("Message received on MorrowNet. Routed to MorrowNet.")
 					print(" Dest MAC: {}".format(datalink.getHeader(0)))
 					print(" Src MAC: {}".format(datalink.getHeader(1)))
@@ -144,7 +144,7 @@ class Router(MorrowNIC):
 					datalink.setHeader((source_mac,self.mac))
 					datalink.payload.setHeader((new_ip,'00'))
 					self.send_queue.put(datalink)
-					if verbose:
+					if self.verbose:
 						print("Assigning IP on MorrowNet.")
 						print(" Recipient MAC: {}".format(datalink.getHeader(0)))
 						print(" Assigned IP: {}".format(datalink.getPayload().getHeader(0)))
@@ -153,7 +153,7 @@ class Router(MorrowNIC):
 					bytearray_ipheader_udpheader_msg = bytearray(str(datalink.payload), encoding='UTF-8')
 					dst_group_router = self.router_eth_ip[dest_group]
 					sock.sendto(bytearray_ipheader_udpheader_msg, dst_group_router)
-					if verbose:
+					if self.verbose:
 						print("Message received on MorrowNet. Routed to Ethernet.")
 						print(" Dest Router: {}".format(dst_group_router))
 						print(" Dest IP: {}".format(datalink.getPayload().getHeader(0)))
