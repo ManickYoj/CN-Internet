@@ -48,16 +48,16 @@ class Router(MorrowNIC):
 		self.socket.bind(self.Router_Address)
 		self.socket.settimeout(2.0)
 		if self.verbose: print("Ethernet socket initialized")
-		#------------------Initializes NIC-------------------#
-		receive_queue = Queue()
-		super(Router,self).__init__(receive_queue)
-		if self.verbose: print("MorrowNet Virtual Network Interface Card initialized")
 		#------------Extends Itentity Information------------#
 		self.group = mac.my_group
 		self.ip = '00'
 		self.mac = 'R'
 		self.registry = {}
 		if self.verbose: print("Identity Information Extended")
+		#------------------Initializes NIC-------------------#
+		receive_queue = Queue()
+		super(Router,self).__init__(receive_queue)
+		if self.verbose: print("MorrowNet Virtual Network Interface Card initialized")
 		#---------------Starts Routing Threads---------------#
 		self.E2M = threading.Thread(target=self.routeEthernetToMorse)
 		self.M2E = threading.Thread(target=self.routeMorseToEthernet)
