@@ -75,11 +75,11 @@ class MorrowNIC(object):
 		if pulse[0] and pulse[1] > 8*self.pulse_duration:
 			if pulse[1] > 8*self.pulse_duration and pulse[1] < 10.5*self.pulse_duration:
 				self.pulse_width = pulse[1]/9.0
-				if receiving_state: self.pulse_queue = Queue()
+				if self.receiving_state: self.pulse_queue = Queue()
 				self.receiving_state = True
 			elif pulse[1] >= 10.5*self.pulse_duration and pulse[1] < 13.5*self.pulse_duration:
 				self.evaluateTransmission()
-				if not receiving_state: self.pulse_queue = Queue()
+				if not self.receiving_state: self.pulse_queue = Queue()
 				self.receiving_state = False
 			return
 		#--------------------Save Pulses---------------------#
