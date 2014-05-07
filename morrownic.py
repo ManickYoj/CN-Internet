@@ -259,7 +259,7 @@ class MorrowNIC(object):
 
 	def getIP(self):
 		while not self.ip:
-			time.sleep(.1)
+			sleep(.1)
 		return self.ip
 
 if __name__ == "__main__":

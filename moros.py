@@ -80,7 +80,7 @@ class MorOS(object):
 			dir_text = "No commands available."
 
 		if self.available_apps:
-			app_txt = "Available applications to run: "
+			app_txt = "Available applications to run: \n"
 			for app in self.available_apps.keys():
 				app_txt += " -" + app + "\n"
 		else:
