@@ -12,11 +12,13 @@ class ChatClient(object):
             import morrowsocket as s
 
         # Initilize variables
-        self.serverlog = []
-        self.ips = []
+        self.chatlog = []
         self.buflen = 65500
         self.ip = ip
         self.port = port
+        self.dest_ip = self.ip
+        self.dest_port = self.port
+        self.socket = None
 
         # Thread control booleans
         self.exit = False
@@ -24,15 +26,18 @@ class ChatClient(object):
         self.output_msgs = []
 
         # UI Setup
-        self.available_cmds = OrderedDict([('help', self.help),
-                                           ('show_log', self.showLog),
-                                           ('clear_log', self.clearLog),
-                                           ('exit', self.exit)])
+        self.available_cmds = OrderedDict([('\\setDestAddress', self.setDestAddress),
+                                           ('\\setDestIP', self.setDestIP),
+                                           ('\\setDestPort', self.setDestPort),
+                                           ('\\help', self.help),
+                                           ('\\showLog', self.showLog),
+                                           ('\\clearLog', self.clearLog),
+                                           ('\\exit', self.exit)])
 
         # Start actual recieving thread
-        server_thread = t.Thread(target=self.runServer)
-        server_thread.setDaemon(True)
-        server_thread.start()
+        recv_thread = t.Thread(target=self.runRecv)
+        recv_thread.setDaemon(True)
+        recv_thread.start()
 
         # Allow user interrupts to issue commands
         self.runCLI()
@@ -44,39 +49,53 @@ class ChatClient(object):
             self.disp_output = False  # Temporarily stop displaying server output
             print("\n")
 
-            cmd = input('--> Enter Cmd: ')
-            cmd = cmd.split()
+            cmd = input('--> Enter Cmd or Msg: ')
 
-            if len(cmd) > 0 and cmd[0] in self.available_cmds:
-                if len(cmd) >= 1:
-                    args = cmd[1:]
+            if len(cmd) > 0:
+                cmd = cmd.split()
+                if cmd[0] in self.available_cmds:
+                    if len(cmd) >= 1:
+                        args = cmd[1:]
+                    else:
+                        args = []
+
+                    self.available_cmds[cmd[0]].__call__(args)
                 else:
-                    args = []
+                    self.sendMessage(cmd)
 
-                self.available_cmds[cmd[0]].__call__(args)
-
-            # Resume server output and displayed the held messages
+            # Resume reciever output and displayed the held messages
             self.disp_output = True
             for item in self.output_msgs:
                 print(item)
             self.output_msgs = []
 
+    def setDestAddress(self, *args):
+        self.setDestIP([args[0]])
+        self.setDestPort([args[1]])
+
+    def setDestIP(self, *args):
+        self.dest_ip = args[0]
+
+    def setDestPort(self, *args):
+        self.dest_port = int(args[0])
+
     def showLog(self, *args):
-        print("#----- Start of Server Log ----- #")
-        if self.serverlog:
-            for (counter, item) in enumerate(self.serverlog):
+        print("#----- Start of Chat Log ----- #")
+        if self.chatlog:
+            for (counter, item) in enumerate(self.chatlog):
                 print("Entry No. {}:  ".format(counter) + item)
-        print("#----- End of Server Log-----#")
+        print("#----- End of Chat Log-----#")
 
     def clearLog(self, *args):
-        self.serverlog = []
-        print("#----- Server Log Cleared -----#")
+        self.chatlog = []
+        print("#----- Chat Log Cleared -----#")
 
     def help(self, *args):
         """ Display a list of commands and available applications. """
 
         if self.available_cmds:
-            dir_text = "Enter commands in the format 'cmd [args]'. Available commands: \n"
+            dir_text = "To send a message, simply enter the message at the command prompt.\n"
+            dir_text += "Enter commands in the format 'cmd [args]'. Available commands: \n"
             for cmd in self.available_cmds.keys():
                 dir_text += " -" + cmd + "\n"
         else:
@@ -90,16 +109,17 @@ class ChatClient(object):
         print("#----- Server Shutdown -----#")
 
     # ----- Private Message Methods ----- #
-    def runServer(self):
+    def runRecv(self):
         socket, AF_INET, SOCK_DGRAM, timeout = s.Socket, s.AF_INET, s.SOCK_DGRAM, s.timeout
 
         with socket(AF_INET, SOCK_DGRAM) as sock:
 
             # Socket setup
+            self.socket = sock
             sock.bind((self.ip, self.port))
             sock.settimeout(1)
 
-            print("Chat Server started on IP Address {}, port {}".format(self.ip, self.port))
+            print("Chat client recieving messages on IP Address {} and port {}".format(self.ip, self.port))
             print("To enter a comand, first press the enter key, then enter the command at the displayed prompt.")
 
             # Main loop
@@ -114,7 +134,7 @@ class ChatClient(object):
                     # Message display & logging
                     msg_output = "\nMessage received from ip address {}, port {}:\n".format(src_ip, src_port)
                     msg_output += msg + "\n"
-                    self.serverlog.append(msg_output)
+                    self.chatlog.append(msg_output)
 
                     # Account for when input is being taken
                     if self.disp_output:
@@ -122,35 +142,18 @@ class ChatClient(object):
                     else:
                         self.new_msgs.append(msg_output)
 
-                    # Add new users and relay messages
-                    if src_ip not in self.ips:
-                        self.ips.append(src_ip)
-                    self.relayMessage(msg, src_ip)
-
                 # Allows socket's recvfrom to timeout safely
                 except q.Empty:
                     continue
 
-    def sendMessage(self, msg, dest_ip, dest_port=69):
+    def sendMessage(self, msg):
         """ Sends a message to the destination IP """
-        address = (dest_ip, dest_port)
+        address = (self.dest_ip, self.dest_port)
         if isinstance(msg, list):
             msg = ''.join(msg)
 
-        # Start new socket for sending message (note: this will alias the server port)
-        socket, AF_INET, SOCK_DGRAM = s.CustomSocket, s.AF_INET, s.SOCK_DGRAM
-        with socket(AF_INET, SOCK_DGRAM) as sock:
-
-            # Send Message
-            self.socket.sendto(msg.encode("UTF-8"), address)
-
-    def relayMessage(self, msg, src_ip):
-        """ Repeates a message from the given source IP, if valid. """
-        if len(msg) >= self.buflen:
-            self.sendMessage("Message was too long and has not been sent.", src_ip)
-        else:
-            for ip in self.ips:
-                self.sendMessage(msg, ip)
+        # Send Message
+        self.socket.sendto(msg.encode("UTF-8"), address)
 
 if __name__ == "__main__":
     ChatClient()

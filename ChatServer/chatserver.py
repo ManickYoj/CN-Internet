@@ -1,6 +1,7 @@
 import queue as q
 import threading as t
 from collections import OrderedDict
+import user as u
 
 
 class ChatServer(object):
@@ -13,21 +14,25 @@ class ChatServer(object):
 
         # Initilize variables
         self.serverlog = []
-        self.ips = []
+        self.users = {}
         self.buflen = 65500
         self.ip = ip
         self.port = port
+        self.socket = None
 
         # Thread control booleans
         self.exit = False
         self.disp_output = True
         self.output_msgs = []
 
-        # UI Setup
+        # Server UI Setup
         self.available_cmds = OrderedDict([('help', self.help),
                                            ('show_log', self.showLog),
                                            ('clear_log', self.clearLog),
                                            ('exit', self.exit)])
+
+        ## Client UI Setup
+        #self.user_cmds = OrderedDict([('\\login')])
 
         # Start actual recieving thread
         server_thread = t.Thread(target=self.runServer)
@@ -96,10 +101,11 @@ class ChatServer(object):
         with socket(AF_INET, SOCK_DGRAM) as sock:
 
             # Socket setup
+            self.socket = sock
             sock.bind((self.ip, self.port))
             sock.settimeout(1)
 
-            print("Chat Server started on IP Address {}, port {}".format(self.ip, self.port))
+            print("Chat Server started on IP Address {} and port {}".format(self.ip, self.port))
             print("To enter a comand, first press the enter key, then enter the command at the displayed prompt.")
 
             # Main loop
@@ -108,11 +114,10 @@ class ChatServer(object):
                     # Check socket & parse data
                     data = sock.recvfrom(self.buflen)
                     bytearray_msg, address = data
-                    src_ip, src_port = address
                     msg = bytearray_msg.decode("UTF-8")
 
                     # Message display & logging
-                    msg_output = "\nMessage received from ip address {}, port {}:\n".format(src_ip, src_port)
+                    msg_output = "\nMessage received from ip address {}, port {}:\n".format(address[0], address[1])
                     msg_output += msg + "\n"
                     self.serverlog.append(msg_output)
 
@@ -123,34 +128,43 @@ class ChatServer(object):
                         self.new_msgs.append(msg_output)
 
                     # Add new users and relay messages
-                    if src_ip not in self.ips:
-                        self.ips.append(src_ip)
-                    self.relayMessage(msg, src_ip)
+                    if address not in self.users:
+                        self.login(msg, address)
+                    else:
+                        self.relayMessage(msg, address)
 
                 # Allows socket's recvfrom to timeout safely
                 except q.Empty:
                     continue
 
-    def sendMessage(self, msg, dest_ip, dest_port=69):
+    def sendMessage(self, msg, address):
         """ Sends a message to the destination IP """
-        address = (dest_ip, dest_port)
         if isinstance(msg, list):
             msg = ''.join(msg)
 
-        # Start new socket for sending message (note: this will alias the server port)
-        socket, AF_INET, SOCK_DGRAM = s.CustomSocket, s.AF_INET, s.SOCK_DGRAM
-        with socket(AF_INET, SOCK_DGRAM) as sock:
+        # Send Message
+        self.socket.sendto(msg.encode("UTF-8"), address)
 
-            # Send Message
-            self.socket.sendto(msg.encode("UTF-8"), address)
-
-    def relayMessage(self, msg, src_ip):
+    def relayMessage(self, msg, address):
         """ Repeates a message from the given source IP, if valid. """
         if len(msg) >= self.buflen:
-            self.sendMessage("Message was too long and has not been sent.", src_ip)
+            self.sendMessage("Message was too long and has not been sent.", address)
         else:
-            for ip in self.ips:
-                self.sendMessage(msg, ip)
+            for user in self.users:
+                self.sendMessage(msg, user.address)
+
+    # ----- User Commands ----- #
+    def login(self, msg, address):
+        if msg == "\\login":
+            msg = msg.split()
+            if len(msg) > 1:
+                self.users[address] = msg[1]
+                welcome = msg[1] + " has joined the server."
+                print(welcome)
+                self.serverlog.append(welcome)
+                self.relayMessage(welcome)
+            else:
+                self.sendMessage("Login failed. No alias submitted.", address)
 
 if __name__ == "__main__":
     ChatServer()
