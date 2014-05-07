@@ -26,15 +26,13 @@ timeout = 2
 class MorrowSocket(object):
 
     # ----- System Methods ----- #
-    def __init__(self, family=2, protocol=2, port=69, send_queue=None, debug=False):
+    def __init__(self, family=2, protocol=2, debug=False):
         self.debug = debug
 
-        self.port = port
-        self.ip = '0.0.48.48'  # Corresponds to a Morse '00'
-                               # (which should automatically trigger an IP assignment request from the router)
-
-        self.send_queue = send_queue
         self.recv_queue = q.Queue()
+        morse_ip, self.port, self.send_queue = port_manager.register(self.recv_queue)
+        self.ip = self.MorseToIPV4(morse_ip)
+
         self.timeout = 1
 
         self.family = family
@@ -42,7 +40,7 @@ class MorrowSocket(object):
         self.protocols = {protocol: 'E'}  # Heh...
 
         if self.debug:
-            print("Socket started up with IP {} and port {} using queue {}".format(self.ip,self.port,self.send_queue))
+            print("Socket started up with IP {} and port {}".format(self.ip, self.port))
 
     def __enter__(self):
         return self
@@ -52,11 +50,13 @@ class MorrowSocket(object):
 
     # ----- Public Methods ----- #
     def bind(self, address):
-        self.ip = address[0]
-        #self.port = address[1] # Double Heh...
+        if self.debug:
+            print("IP bind is not currently supported. IP will remain as {}.".format(self.ip))
+        if port_manager.reassignPort(self.port, address[1]):
+            self.port = address[1]
 
         if self.debug:
-            print("Socket bound with IP {} and port {}".format(self.ip, self.port))
+            print("Socket rebound to port {}".format(self.ip, self.port))
 
     def settimeout(self, timeout):
         self.timeout = timeout
@@ -76,7 +76,7 @@ class MorrowSocket(object):
         self.send_queue.put(ip)
 
     def recvfrom(self, buflen=65536):
-        
+
         try:
             ip = self.recv_queue.get(True, self.timeout)
 
@@ -88,7 +88,7 @@ class MorrowSocket(object):
                     print(" Src Port: {}".format(ip.getPayload().getHeader(1)))
                     print(" Message: {}".format(ip.getPayload().getPayload()))
                     print(" ")
-            
+
             if ip.getLength() < buflen:
                 address = (self.MorseToIPV4(ip.getHeader(1)), self.MorseToIPV4(ip.getPayload().getHeader(1)))
                 msg = ip.getPayload().getPayload().encode("UTF-8")
@@ -125,7 +125,7 @@ class MorrowSocket(object):
 
 # ------ Unit Testing ----- #
 if __name__ == "__main__":
-    msock = MorrowSocket(send_queue=q.Queue(), debug=True)
+    msock = MorrowSocket(debug=True)
 
     # Test Recv Functionality
     udp = ms.UDPLayer("APPMSG", ("E", "E"))

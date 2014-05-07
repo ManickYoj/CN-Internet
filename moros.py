@@ -9,6 +9,8 @@ New apps are instantiated from here and this class
 controls and distributes resources. It owns the singleton
 NIC class and is itself a singleton.
 
+Potential Improvements:
+    - Load applist at runtime from an Apps directory
 """
 
 # Functionality Imports
