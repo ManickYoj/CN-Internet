@@ -2,7 +2,7 @@
 moros.py
 -----------
 Author: Nick Francisci
-Status: Incomplete & Untested
+Status: Complete & Untested
 Description:
 The overarching program controller.
 New apps are instantiated from here and this class
@@ -13,187 +13,126 @@ NIC class and is itself a singleton.
 
 # Functionality Imports
 import morrownic as mn
+import morrowstack as ms
+import portmanager as pm
+import threading as t
 import queue as q
-import threading
-import time
 import sys
-import os
 
 # App Imports
 sys.path.insert(0, 'ChatServer')
+sys.path.insert(1, 'ChatClient')
 import chatserver as cs
+import chatclient as cc
 
 
 class MorOS(object):
 
-    def __init__(self, timeout=1, debug=False):
+    def __init__(self, debug=False):
+        # Initilize variables
         self.debug = debug
+        self.sock_dict = {}
 
-        # Setup
-        self.apps = {}  # A dictionary of all of the Apps owned by the OS, with port/app_id as the key
-        self.available_apps = ['router', 'chatserver']  # A list of the names of available programs
-        self.timeout = timeout
-        self.close = False
+        self.available_cmds = {'exit': self.exit, 'help': self.help, 'run': self.run}
+        self.available_apps = {'chatserver': cs.ChatServer, 'chatclient': cc.ChatClient}
 
-        # Setup NIC message monitoring
-        recv_queue = self.createMonitoredRecvQueue()
-        self.nic = mn.MorrowNIC(recv_queue)
+        # Monitor incoming messages and direct them to appropriate sockets
+        self.nic = mn.MorrowNIC(self.monitoredQueue(self.msgsToSock))
 
-        self.createApp("chatserver")
-        # Run UI & Normal Operations
-        #self.runCLI()
+        # Setup a global socket registry system and relay submitted messages
+        global port_manager
+        port_manager = pm.PortManager(self.sock_dict, self.monitoredQueue(self.msgsFromSock), self.nic.getIP())
 
-        # Shutdown Gracefully
-        #self.__exit__()
+        # Run UI
+        print("#----- MorOS booted. -----#")
+        self.runCLI()
 
     # ------ Private UI Methods ----- #
-
     def runCLI(self):
         """
         Runs a command line interface that allows the user to start new apps by name.
         """
-        directions = ("Enter commands in the format 'cmd [args]'.\nSuggestions: 'run chatserver', 'run router', 'help', 'close'")
-        print("#----- MorOS booted and awaiting commands. -----#")
-        print(directions)
-        while not self.close:
-            cmd = input('Cmd: ')
+        self.available_cmds['help'].__call__()
+
+        while True:
+            cmd = input('--> Enter Cmd: ')
+            print("\n")
             cmd = cmd.split()
 
-            if len(cmd) < 1:
-                cmd = "ERROR"
-
-            if cmd[0] == 'run' and len(cmd) > 1:
-                if cmd[1] == 'router':
-                    self.startRouterMode()
-                elif cmd[1] in self.available_apps:
-                    self.createApp(cmd[1])
+            if len(cmd) > 0 and cmd[0] in self.available_cmds:
+                if len(cmd) >= 1:
+                    args = cmd[1:]
                 else:
-                    print("Error: App does not exist!")
-            elif cmd[0] == 'close':
-                return
-            elif cmd[0] == 'help':
-                print(directions)
-            else:
-                print("Invalid command.")
-                print(directions)
+                    args = []
 
-    # ------ Router Methods ------ #
-    def startRouterMode(self):
-        print("Route!")
+                self.available_cmds[cmd[0]].__call__(args)
 
-    # ------ Private App Methods ----- #
-    def createApp(self, app_type):
-        """ 
-        Initilizes a new App with a monitored send queue and unique app ID/port.
+    def help(self, *args):
+        """ Display a list of commands and available applications. """
+
+        if self.available_cmds:
+            dir_text = "Enter commands in the format 'cmd [args]'. Available commands: \n"
+            for cmd in self.available_cmds.keys():
+                dir_text += " -" + cmd + "\n"
+        else:
+            dir_text = "No commands available."
+
+        if self.available_apps:
+            app_txt = "Available applications to run: "
+            for app in self.available_apps.keys():
+                app_txt += " -" + app + "\n"
+        else:
+            app_txt = "No applications available."
+
+        print(dir_text + "\n" + app_txt + "\n")
+
+    def exit(self, *args):
+        sys.exit(0)
+
+    def run(self, *args):
+        if args:
+            if args[0] in self.available_apps:
+                self.available_apps[args[0]].__init__()
+        else:
+            print("Invalid app name.")
+
+    # ----- Private Message Relay Methods ----- #
+    def monitoredQueue(self, monitorFunc):
         """
-        # Generate an app ID/port
-        app_id = 69
-        while app_id in self.apps:
-            app_id += 1
-
-        # Create a monitored sending queue for the app to use
-        send_queue = self.createMonitoredSendQueue()
-
-        # Create a new app of specified app_type and add them to the app dictionary
-        new_app = None
-        if self.debug:
-            print("Attempting to start a {} on port {}.".format(app_type, chr(app_id)))
-        if app_type == 'chatserver':
-            new_app = cs.ChatServer(app_id, send_queue)
-        if new_app:
-            self.apps[chr(app_id)] = new_app
-            if self.debug:
-                print("App started successfully!")
-
-    def destroyApp(self, app_id):
-        """ Gracefully exits the specified app and removes it from the OS's self.apps dict. """
-        # Tells the thread monitoring the send_queue to end itself
-        self.apps[app_id].send_queue.put(str(self))
-
-        # Removes the app from the list of apps and allows garbage collection to delete
-        # the instance of the app and its children
-        del self.apps[app_id]
-
-    # ----- Private Queue Creation Methods ----- #
-    def createMonitoredRecvQueue(self):
-        """ Creates and returns a monitored recieving queue. """
-        recv_queue = q.Queue()
-        recv_thread = threading.Thread(target=self.monitorRecv, args=[recv_queue])
-        recv_thread.start()
-        return recv_queue
-
-    def monitorRecv(self, recv_queue):
+        Initilizes a queue such that messages in that queue will be monitored
+        and acted on by the passed in monitorFunc.
         """
-        A thread-method that monitors the NIC's recieving queue and passes on its messages
-        to the appropriate App, if one exists.
+        m_queue = q.Queue()
+        m_thread = t.Thread(target=monitorFunc, args=[m_queue])
+        m_thread.setDaemon(True)
+        m_thread.start()
+        return m_queue
+
+    def msgsToSock(self, recv_queue):
         """
-        while not self.close:
-            # Get message from the NIC and check its destination port
+        Relays messages from the recv_queue to the appropriate
+        socket if that socket exists.
+        """
+        while True:
             try:
-                msg = recv_queue.get(True, self.timeout)
-                dest_port = msg.getPayload().getHeader(0)
+                msg = recv_queue.get(True)
+                if isinstance(msg, ms.IPLayer):
+                    dest_port = msg.getPayload().getHeader(0)
+                    if dest_port in self.sock_dict:
+                        self.sock_dict[dest_port].put(msg)
 
-                if self.debug:
-                    time.sleep(.01)
-                    print("Message processed in the OS:")
-                    print(" Dest IP: {}".format(msg.getHeader(0)))
-                    print(" Src IP: {}".format(msg.getHeader(1)))
-                    print(" Dest Port: {}".format(msg.getPayload().getHeader(0)))
-                    print(" Src Port: {}".format(msg.getPayload().getHeader(1)))
-                    print(" Message: {}".format(msg.getPayload().getPayload()))
-                    print(" ")
-
-                # If the message is addressed to an open app, pass on the message.
-                # Otherwise, discard the message.
-                if dest_port in self.apps:
-                    self.apps[dest_port].pushRecvdMsg(msg)
-                    if self.debug:
-                        print("Message passed along to an app running on port {}.".format(dest_port))
             except q.Empty:
                 continue
 
-    def createMonitoredSendQueue(self):
-        """ Creates and returns a monitored sending queue. """
-        send_queue = q.Queue()
-        send_thread = threading.Thread(target=self.monitorSend, args=[send_queue])
-        send_thread.start()
-        return send_queue
-
-    def monitorSend(self, send_queue):
-        """ A thread-method to send any messages in the passed send_queue. """
-        while not self.close:
+    def msgsFromSock(self, send_queue):
+        """ Relays messages from the send_queue to the nic. """
+        while True:
             try:
-                msg = send_queue.get(True, self.timeout)
-
-                if msg == str(self):
-                    return
-                else:
+                msg = send_queue.get(True)
+                if isinstance(msg, ms.IPLayer):
                     self.nic.send(msg)
             except q.Empty:
                 continue
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self):
-        # Apps will check this in <=self.timeout time and will shutdown
-        self.close = True
-
-        # Destroy remaining apps
-        for app_id in self.apps.keys():
-            self.destroyApp(app_id)
-
-        # Wait for all threads to close and notify the user what percent have been closed
-        orig_number = threading.active_count()-1
-        while not threading.active_count() == 1:
-            print("thread count: " + str(threading.active_count()))
-            ratio = 1 - threading.active_count()/orig_number
-            percent = ratio * 100
-            print("Exiting: " + str(percent))
-            time.sleep(.5)
-
-        # Exit program
-        sys.exit(0)
 
 if __name__ == "__main__":
     moros = MorOS(debug=False)

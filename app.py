@@ -1,4 +1,23 @@
-#TODO OPCODES! YAY!
+import threading as t
+
+# App imports
+import chatserver as cs
+import chatclient as cc
+
+
+class AppList(object):
+    def __init__(self):
+        self.apps = {'chatserver': cs.ChatServer, 'chatclient': cc.ChatClient}
+
+    def runApp(self, app_type, app_id, send_queue):
+        if app_type in self.apps:
+            app = self.apps[app_type]
+            t.Thread(target=app.__init__, args=[app_id, send_queue])
+            t.setDaemon(True)
+            t.start()
+            return t
+        else:
+            return None
 
 import morrowsocket as ms
 import socket as s
