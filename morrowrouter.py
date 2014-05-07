@@ -43,7 +43,7 @@ class Router(MorrowNIC):
 		self.verbose = verbose
 		if self.verbose: print("Commencing router initialization")
 		#--------------Initializes Real Socket---------------#
-		self.Router_Address = ("10.26.8.23",5073)
+		self.Router_Address = ("10.26.8.18",5073)
 		self.socket = s.socket(s.AF_INET,s.SOCK_DGRAM)
 		self.socket.bind(self.Router_Address)
 		self.socket.settimeout(2.0)
