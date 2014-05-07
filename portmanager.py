@@ -46,6 +46,11 @@ class PortManager(object):
                 return True
         return False
 
+    def clearPort(self, port):
+        """ Removes a socket from its port. """
+        if port in self.sock_dict:
+            del self.sock_dict[port]
+
     # ----- OS API ----- #
     def updateIP(self, ip):
         self.ip = ip

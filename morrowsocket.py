@@ -46,6 +46,7 @@ class MorrowSocket(object):
         return self
 
     def __exit__(self, *T):
+        port_manager.clearPort(self.port)
         return not any((T))
 
     # ----- Public Methods ----- #
