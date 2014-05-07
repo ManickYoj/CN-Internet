@@ -134,7 +134,7 @@ class Router(MorrowNIC):
 					print(" Message: {}".format(datalink.getPayload().getPayload().getPayload()))
 					print(" ")
 			elif self.mac == dest_mac and self.group != dest_group:
-				if dest_ip == '00' and source_ip == '00' and source_mac not in self.registry.values():
+				if dest_ip == '00' and source_ip == '00':
 					new_ip = ""
 					while True:
 						new_ip = self.group + chr(random.randint(65,90))
@@ -148,12 +148,6 @@ class Router(MorrowNIC):
 						print("Assigning IP on MorrowNet.")
 						print(" Recipient MAC: {}".format(datalink.getHeader(0)))
 						print(" Assigned IP: {}".format(datalink.getPayload().getHeader(0)))
-						print(" ")
-				elif dest_ip == '00' and source_ip == '00' and source_mac in self.registry.values():
-					if self.verbose:
-						print("IP already assigned on MorrowNet. Ignoring request.")
-						print(" Recipient MAC: {}".format(source_mac))
-						print(" Assigned IP: {}".format(self.registry[source_mac]))
 						print(" ")
 				else:
 					bytearray_ipheader_udpheader_msg = bytearray(str(datalink.payload), encoding='UTF-8')
