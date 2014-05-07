@@ -258,8 +258,8 @@ class MorrowNIC(object):
 		self.send_queue.put(datalink)
 
 	def getIP(self):
-                while not self.ip:
-                    time.sleep(.1)
+		while not self.ip:
+			time.sleep(.1)
 		return self.ip
 
 if __name__ == "__main__":
