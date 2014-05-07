@@ -20,7 +20,7 @@ import queue as q
 
 AF_INET = 2
 SOCK_DGRAM = 2
-timeout = 2
+timeout = 1
 
 
 class MorrowSocket(object):
@@ -90,10 +90,12 @@ class MorrowSocket(object):
                     print(" Message: {}".format(ip.getPayload().getPayload()))
                     print(" ")
 
-            if ip.getLength() < buflen:
-                address = (self.MorseToIPV4(ip.getHeader(1)), self.MorseToIPV4(ip.getPayload().getHeader(1)))
-                msg = ip.getPayload().getPayload().encode("UTF-8")
-                return msg, address
+            # Check IP, Port, & Length
+            if self.ip == self.MorseToIPV4(ip.getHeader(0)) and self.port == self.MorseToIPV4(ip.getPayload().getHeader(0)):
+                if ip.getLength() < buflen:
+                    address = (self.MorseToIPV4(ip.getHeader(1)), self.MorseToIPV4(ip.getPayload().getHeader(1)))
+                    msg = ip.getPayload().getPayload().encode("UTF-8")
+                    return msg, address
         except q.Empty:
             raise
 
