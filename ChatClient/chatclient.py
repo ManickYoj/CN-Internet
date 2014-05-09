@@ -33,15 +33,9 @@ class ChatClient(object):
 
         # Start actual recieving thread
         recv_thread = t.Thread(target=self.runRecv)
-        recv_thread.setDaemon(True)
         recv_thread.start()
 
-        recv_thread = t.Thread(target=self.runCLI)
-        recv_thread.setDaemon(True)
-        recv_thread.start()
-        # Allow user interrupts to issue commands
-        while not self.closing:
-            time.sleep(.01)
+        self.runCLI()
 
     # ----- Private UI Methods ----- #
     def runCLI(self):

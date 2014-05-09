@@ -33,7 +33,6 @@ class ChatServer(object):
 
         # Start actual recieving thread
         server_thread = t.Thread(target=self.runServer)
-        server_thread.setDaemon(True)
         server_thread.start()
 
         # Allow user interrupts to issue commands
