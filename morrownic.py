@@ -249,7 +249,7 @@ class MorrowNIC(object):
 		function used by moros to send
 		an IP object
 		"""
-		dest_ip = IP.getHeader(0)[1]
+		dest_ip = IP.getHeader(0)
 		if dest_ip in self.mac_dict:
 			dest_mac = self.mac_dict[dest_ip]
 		else:
