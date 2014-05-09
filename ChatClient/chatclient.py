@@ -2,7 +2,7 @@ import queue as q
 import threading as t
 from collections import OrderedDict
 import morrowsocket as s
-
+import time
 
 class ChatClient(object):
 
@@ -32,17 +32,14 @@ class ChatClient(object):
                                            ('\\close', self.close)])
 
         # Start actual recieving thread
-        recv_thread = t.Thread(target=self.runRecv)
-        recv_thread.setDaemon(True)
-        recv_thread.start()
+        t.Thread(target=self.runRecv).start()
 
-        # Allow user interrupts to issue commands
         self.runCLI()
 
     # ----- Private UI Methods ----- #
     def runCLI(self):
         while not self.closing:
-            input("\n")  # Continue to cmd prompt when user hits the enter key
+            test = input()  # Continue to cmd prompt when user hits the enter key
             self.disp_output = False  # Temporarily stop displaying server output
             print("\n")
 
@@ -58,7 +55,7 @@ class ChatClient(object):
 
                     self.available_cmds[cmd[0]].__call__(args)
                 else:
-                    self.sendMessage(cmd)
+                    self.sendMessage(" ".join(cmd))
 
             # Resume reciever output and displayed the held messages
             self.disp_output = True
@@ -67,13 +64,19 @@ class ChatClient(object):
             self.output_msgs = []
 
     def setDestAddress(self, *args):
-        self.setDestIP([args[0]])
-        self.setDestPort([args[1]])
+        if not args:
+            return
+        self.setDestIP([args[0][0]])
+        self.setDestPort([args[1][0]])
 
     def setDestIP(self, *args):
-        self.dest_ip = args[0]
+        if not args:
+            return
+        self.dest_ip = args[0][0]
 
     def setDestPort(self, *args):
+        if not args:
+            return
         self.dest_port = int(args[0][0])
 
     def showLog(self, *args):
@@ -110,7 +113,6 @@ class ChatClient(object):
         socket, AF_INET, SOCK_DGRAM, timeout = s.Socket, s.AF_INET, s.SOCK_DGRAM, s.timeout
 
         with socket(AF_INET, SOCK_DGRAM) as sock:
-
             # Socket setup
             self.socket = sock
             self.ip = sock.gethostbyname("Falafel")
@@ -139,7 +141,7 @@ class ChatClient(object):
                     if self.disp_output:
                         print(msg_output)
                     else:
-                        self.new_msgs.append(msg_output)
+                        self.output_msgs.append(msg_output)
 
                 # Allows socket's recvfrom to timeout safely
                 except q.Empty:

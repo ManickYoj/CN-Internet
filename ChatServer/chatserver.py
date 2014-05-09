@@ -33,7 +33,6 @@ class ChatServer(object):
 
         # Start actual recieving thread
         server_thread = t.Thread(target=self.runServer)
-        server_thread.setDaemon(True)
         server_thread.start()
 
         # Allow user interrupts to issue commands
@@ -123,7 +122,7 @@ class ChatServer(object):
                     if self.disp_output:
                         print(msg_output)
                     else:
-                        self.new_msgs.append(msg_output)
+                        self.output_msgs.append(msg_output)
 
                     # Add new users and relay messages
                     if address not in self.users:
@@ -153,7 +152,7 @@ class ChatServer(object):
 
     # ----- User Commands ----- #
     def login(self, msg, address):
-        if msg == "\\login":
+        if msg == "/login":
             msg = msg.split()
             if len(msg) > 1:
                 self.users[address] = msg[1]

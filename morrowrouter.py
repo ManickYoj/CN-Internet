@@ -30,7 +30,7 @@ class Router(MorrowNIC):
 		routeMorseToEthernet - MorrowNet to Eth conversion and IP address assignment
 	"""
 	router_eth_ip = {"I":"192.168.100.73",
-			"E":"192.168.100.50",
+			"E":"192.168.100.69",
 			"T":"192.168.100.84",
 			"R":"192.168.100.82"
 		    }
@@ -43,7 +43,7 @@ class Router(MorrowNIC):
 		self.verbose = verbose
 		if self.verbose: print("Commencing router initialization")
 		#--------------Initializes Real Socket---------------#
-		self.Router_Address = ("10.26.8.18",5073)
+		self.Router_Address = ("192.168.100.69",5073)
 		self.socket = s.socket(s.AF_INET,s.SOCK_DGRAM)
 		self.socket.bind(self.Router_Address)
 		self.socket.settimeout(2.0)
@@ -52,7 +52,7 @@ class Router(MorrowNIC):
 		self.group = mac.my_group
 		self.ip = '00'
 		self.mac = 'R'
-		self.registry = {}
+		self.registry = {'EE':'E'}
 		if self.verbose: print("Identity Information Extended")
 		#------------------Initializes NIC-------------------#
 		receive_queue = Queue()
@@ -162,7 +162,7 @@ class Router(MorrowNIC):
 				else:
 					bytearray_ipheader_udpheader_msg = bytearray(str(datalink.payload), encoding='UTF-8')
 					dst_group_router = self.router_eth_ip[dest_group]
-					sock.sendto(bytearray_ipheader_udpheader_msg, dst_group_router)
+					sock.sendto(bytearray_ipheader_udpheader_msg, (dst_group_router,5073))
 					if self.verbose:
 						print("Message received on MorrowNet. Routed to Ethernet.")
 						print(" Dest Router: {}".format(dst_group_router))

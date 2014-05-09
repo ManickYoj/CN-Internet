@@ -6,7 +6,8 @@ class Test(object):
 	def __init__(self):
 		self.verbose = True
 
-		t.Thread(target=self.recvTest).start()
+		thr = t.Thread(target=self.recvTest)
+		thr.start()
 		self.sendTest()
 
 
@@ -18,9 +19,9 @@ class Test(object):
 
 	def sendTest(self):
 		while True:
-			first_cmd = raw_input("Hit 'Enter' at any point for input prompt.")
+			first_cmd = input("Hit 'Enter' at any point for input prompt.")
 			self.verbose = False
-			cmd = raw_input("Enter Input: ")
+			cmd = input("Enter Input: ")
 			print("Your command was " + cmd)
 			self.verbose = True
 
@@ -37,3 +38,5 @@ for item in available_cmds.keys():
 	print(item)
 
 func_list['func'].__call__('test')
+
+Test()
