@@ -31,15 +31,14 @@ class ChatClient(object):
                                            ('\\close', self.close)])
 
         # Start actual recieving thread
-        recv_thread = t.Thread(target=self.runRecv)
-        recv_thread.start()
+        t.Thread(target=self.runRecv).start()
 
         self.runCLI()
 
     # ----- Private UI Methods ----- #
     def runCLI(self):
         while not self.closing:
-            input()  # Continue to cmd prompt when user hits the enter key
+            test = input()  # Continue to cmd prompt when user hits the enter key
             self.disp_output = False  # Temporarily stop displaying server output
             print("\n")
 
@@ -55,7 +54,7 @@ class ChatClient(object):
 
                     self.available_cmds[cmd[0]].__call__(args)
                 else:
-                    self.sendMessage(cmd)
+                    self.sendMessage(" ".join(cmd))
 
             # Resume reciever output and displayed the held messages
             self.disp_output = True

@@ -249,7 +249,7 @@ class MorrowNIC(object):
 		function used by moros to send
 		an IP object
 		"""
-		dest_ip = IP.getHeader(0)[1]
+		dest_ip = IP.getHeader(0)
 		if dest_ip in self.mac_dict:
 			dest_mac = self.mac_dict[dest_ip]
 		else:
@@ -267,7 +267,6 @@ if __name__ == "__main__":
 	receive_queue = Queue()
 	nic = MorrowNIC(receive_queue)
 	sleep(4)
-	print(nic.mac)
 	#nic.send_queue.put(DatalinkLayer("ININIIE08EEAPPMSG"))
 	#nic.send_queue.put(DatalinkLayer("ININIIE08EEHINICK"))
 	#nic.send_queue.put(DatalinkLayer("ININIIE08EEMORROW"))
