@@ -74,7 +74,7 @@ class ChatClient(object):
         self.dest_ip = args[0]
 
     def setDestPort(self, *args):
-        self.dest_port = int(args[0])
+        self.dest_port = int(args[0][0])
 
     def showLog(self, *args):
         print("#----- Start of Chat Log ----- #")
