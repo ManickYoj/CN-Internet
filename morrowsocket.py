@@ -32,7 +32,9 @@ class Socket(object):
 
         self.recv_queue = q.Queue()
         morse_ip, self.port, self.send_queue = port_manager.register(self.recv_queue)
+
         self.ip = self.MorseToIPV4(morse_ip)
+        self.address = (self.ip, self.port)
 
         self.timeout = 1
 
@@ -118,6 +120,7 @@ class Socket(object):
             ipv4 = ipv4.split(".")
             return chr(int(ipv4[2])) + chr(int(ipv4[3]))
         else:
+            print(ipv4)
             raise ValueError("Unable to parse IPV4 string to morse!")
 
     def MorseToIPV4(self, morse):

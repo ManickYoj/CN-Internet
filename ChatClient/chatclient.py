@@ -114,6 +114,7 @@ class ChatClient(object):
             # Socket setup
             self.socket = sock
             self.ip = sock.gethostbyname("Falafel")
+            self.dest_ip = self.ip
             sock.bind((self.ip, self.port))
             sock.settimeout(1)
 
