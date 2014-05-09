@@ -1,15 +1,12 @@
 import queue as q
 import threading as t
 from collections import OrderedDict
+import morrowsocket as s
 
 
 class ChatClient(object):
 
-    def __init__(self, ip=None, port=69, socktype=1):
-        if socktype == 0:
-            import socket as s
-        else:
-            import morrowsocket as s
+    def __init__(self, ip=None, port=69):
 
         # Initilize variables
         self.chatlog = []
@@ -21,7 +18,7 @@ class ChatClient(object):
         self.socket = None
 
         # Thread control booleans
-        self.exit = False
+        self.closing = False
         self.disp_output = True
         self.output_msgs = []
 
@@ -32,7 +29,7 @@ class ChatClient(object):
                                            ('\\help', self.help),
                                            ('\\showLog', self.showLog),
                                            ('\\clearLog', self.clearLog),
-                                           ('\\exit', self.exit)])
+                                           ('\\close', self.close)])
 
         # Start actual recieving thread
         recv_thread = t.Thread(target=self.runRecv)
@@ -44,7 +41,7 @@ class ChatClient(object):
 
     # ----- Private UI Methods ----- #
     def runCLI(self):
-        while not self.exit:
+        while not self.closing:
             input("\n")  # Continue to cmd prompt when user hits the enter key
             self.disp_output = False  # Temporarily stop displaying server output
             print("\n")
@@ -77,7 +74,7 @@ class ChatClient(object):
         self.dest_ip = args[0]
 
     def setDestPort(self, *args):
-        self.dest_port = int(args[0])
+        self.dest_port = int(args[0][0])
 
     def showLog(self, *args):
         print("#----- Start of Chat Log ----- #")
@@ -103,9 +100,9 @@ class ChatClient(object):
 
         print(dir_text + "\n")
 
-    def exit(self, *args):
+    def close(self, *args):
         self.disp_output = False  # Catch any final messages and suppress them
-        self.exit = True
+        self.closing = True
         print("#----- Server Shutdown -----#")
 
     # ----- Private Message Methods ----- #
@@ -116,6 +113,8 @@ class ChatClient(object):
 
             # Socket setup
             self.socket = sock
+            self.ip = sock.gethostbyname("Falafel")
+            self.dest_ip = self.ip
             sock.bind((self.ip, self.port))
             sock.settimeout(1)
 
@@ -123,7 +122,7 @@ class ChatClient(object):
             print("To enter a comand, first press the enter key, then enter the command at the displayed prompt.")
 
             # Main loop
-            while not self.exit:
+            while not self.closing:
                 try:
                     # Check socket & parse data
                     data = sock.recvfrom(self.buflen)

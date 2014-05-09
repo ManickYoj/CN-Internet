@@ -20,6 +20,7 @@ import portmanager as pm
 import threading as t
 import queue as q
 import sys
+import builtins
 
 # App Imports
 sys.path.insert(0, 'ChatServer')
@@ -35,15 +36,14 @@ class MorOS(object):
 		self.debug = debug
 		self.sock_dict = {}
 
-		self.available_cmds = {'exit': self.exit, 'help': self.help, 'run': self.run}
+		self.available_cmds = {'close': self.close, 'help': self.help, 'run': self.run}
 		self.available_apps = {'chatserver': cs.ChatServer, 'chatclient': cc.ChatClient}
 
 		# Monitor incoming messages and direct them to appropriate sockets
 		self.nic = mn.MorrowNIC(self.monitoredQueue(self.msgsToSock))
 
 		# Setup a global socket registry system and relay submitted messages
-		global port_manager
-		port_manager = pm.PortManager(self.sock_dict, self.monitoredQueue(self.msgsFromSock), self.nic.getIP())
+		builtins.port_manager = pm.PortManager(self.sock_dict, self.monitoredQueue(self.msgsFromSock), self.nic.getIP())
 
 		# Run UI
 		print("#----- MorOS booted. -----#")
@@ -88,13 +88,14 @@ class MorOS(object):
 
 		print(dir_text + "\n" + app_txt + "\n")
 
-	def exit(self, *args):
+	def close(self, *args):
 		sys.exit(0)
 
 	def run(self, *args):
 		if args:
-			if args[0] in self.available_apps:
-				self.available_apps[args[0]].__init__()
+			if args[0][0] in self.available_apps:
+				app_class = self.available_apps[args[0][0]]
+				new_app = app_class()
 		else:
 			print("Invalid app name.")
 
