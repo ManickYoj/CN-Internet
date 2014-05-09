@@ -43,7 +43,8 @@ class MorOS(object):
 		self.nic = mn.MorrowNIC(self.monitoredQueue(self.msgsToSock))
 
 		# Setup a global socket registry system and relay submitted messages
-		builtins.port_manager = pm.PortManager(self.sock_dict, self.monitoredQueue(self.msgsFromSock), self.nic.getIP())
+		ip = self.nic.getIP()
+		builtins.port_manager = pm.PortManager(self.sock_dict, self.monitoredQueue(self.msgsFromSock), ip)
 
 		# Run UI
 		print("#----- MorOS booted. -----#")
@@ -118,9 +119,17 @@ class MorOS(object):
 		"""
 		while True:
 			try:
-				msg = recv_queue.get(True)
+				msg = recv_queue.get(True, 1)
+				if self.debug:
+				    print("Message processed in the OS:")
+				    print(" Dest IP: {}".format(msg.getHeader(0)))
+				    print(" Src IP: {}".format(msg.getHeader(1)))
+				    print(" Dest Port: {}".format(msg.getPayload().getHeader(0)))
+				    print(" Src Port: {}".format(msg.getPayload().getHeader(1)))
+				    print(" Message: {}".format(msg.getPayload().getPayload()))
+				    print(" ")
 				if isinstance(msg, ms.IPLayer):
-					dest_port = msg.getPayload().getHeader(0)
+					dest_port = ord(msg.getPayload().getHeader(0))
 					if dest_port in self.sock_dict:
 						self.sock_dict[dest_port].put(msg)
 

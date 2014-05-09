@@ -58,9 +58,10 @@ class Socket(object):
             print("IP bind is not currently supported. IP will remain as {}.".format(self.ip))
         if port_manager.reassignPort(self.port, address[1]):
             self.port = address[1]
+        self.address = (self.ip, self.port)
 
         if self.debug:
-            print("Socket rebound to port {}".format(self.ip, self.port))
+            print("Socket rebound to port {}".format(self.port))
 
     def settimeout(self, timeout):
         self.timeout = timeout

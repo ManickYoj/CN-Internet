@@ -29,7 +29,7 @@ class MorrowNIC(object):
 		self.ip = None
 		if self.debug: print("Identity variables initialized")
 		#---------------Transmission Variables---------------#
-		self.pulse_duration = .008*1000000
+		self.pulse_duration = .01*1000000
 		self.ack_wait = self.pulse_duration*100
 		self.pulse_width = None
 		self.previous_edge = datetime.now()

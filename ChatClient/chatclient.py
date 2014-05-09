@@ -2,7 +2,7 @@ import queue as q
 import threading as t
 from collections import OrderedDict
 import morrowsocket as s
-
+import time
 
 class ChatClient(object):
 
@@ -36,13 +36,17 @@ class ChatClient(object):
         recv_thread.setDaemon(True)
         recv_thread.start()
 
+        recv_thread = t.Thread(target=self.runCLI)
+        recv_thread.setDaemon(True)
+        recv_thread.start()
         # Allow user interrupts to issue commands
-        self.runCLI()
+        while not self.closing:
+            time.sleep(.01)
 
     # ----- Private UI Methods ----- #
     def runCLI(self):
         while not self.closing:
-            input("\n")  # Continue to cmd prompt when user hits the enter key
+            input()  # Continue to cmd prompt when user hits the enter key
             self.disp_output = False  # Temporarily stop displaying server output
             print("\n")
 
@@ -67,13 +71,19 @@ class ChatClient(object):
             self.output_msgs = []
 
     def setDestAddress(self, *args):
-        self.setDestIP([args[0]])
-        self.setDestPort([args[1]])
+        if not args:
+            return
+        self.setDestIP([args[0][0]])
+        self.setDestPort([args[1][0]])
 
     def setDestIP(self, *args):
-        self.dest_ip = args[0]
+        if not args:
+            return
+        self.dest_ip = args[0][0]
 
     def setDestPort(self, *args):
+        if not args:
+            return
         self.dest_port = int(args[0][0])
 
     def showLog(self, *args):
@@ -110,7 +120,6 @@ class ChatClient(object):
         socket, AF_INET, SOCK_DGRAM, timeout = s.Socket, s.AF_INET, s.SOCK_DGRAM, s.timeout
 
         with socket(AF_INET, SOCK_DGRAM) as sock:
-
             # Socket setup
             self.socket = sock
             self.ip = sock.gethostbyname("Falafel")
@@ -139,7 +148,7 @@ class ChatClient(object):
                     if self.disp_output:
                         print(msg_output)
                     else:
-                        self.new_msgs.append(msg_output)
+                        self.output_msgs.append(msg_output)
 
                 # Allows socket's recvfrom to timeout safely
                 except q.Empty:
