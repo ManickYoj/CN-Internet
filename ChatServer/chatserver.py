@@ -2,15 +2,12 @@ import queue as q
 import threading as t
 from collections import OrderedDict
 import user as u
-
+import morrowsocket as s
 
 class ChatServer(object):
 
-    def __init__(self, ip=None, port=69, socktype=1):
-        if socktype == 0:
-            import socket as s
-        else:
-            import morrowsocket as s
+    def __init__(self, ip=None, port=69):
+            
 
         # Initilize variables
         self.serverlog = []
@@ -21,7 +18,7 @@ class ChatServer(object):
         self.socket = None
 
         # Thread control booleans
-        self.exit = False
+        self.closing = False
         self.disp_output = True
         self.output_msgs = []
 
@@ -29,7 +26,7 @@ class ChatServer(object):
         self.available_cmds = OrderedDict([('help', self.help),
                                            ('show_log', self.showLog),
                                            ('clear_log', self.clearLog),
-                                           ('exit', self.exit)])
+                                           ('close', self.close)])
 
         ## Client UI Setup
         #self.user_cmds = OrderedDict([('\\login')])
@@ -44,7 +41,7 @@ class ChatServer(object):
 
     # ----- Private UI Methods ----- #
     def runCLI(self):
-        while not self.exit:
+        while not self.closing:
             input("\n")  # Continue to cmd prompt when user hits the enter key
             self.disp_output = False  # Temporarily stop displaying server output
             print("\n")
@@ -89,9 +86,9 @@ class ChatServer(object):
 
         print(dir_text + "\n")
 
-    def exit(self, *args):
+    def close(self, *args):
         self.disp_output = False  # Catch any final messages and suppress them
-        self.exit = True
+        self.closing = True
         print("#----- Server Shutdown -----#")
 
     # ----- Private Message Methods ----- #
@@ -109,7 +106,7 @@ class ChatServer(object):
             print("To enter a comand, first press the enter key, then enter the command at the displayed prompt.")
 
             # Main loop
-            while not self.exit:
+            while not self.closing:
                 try:
                     # Check socket & parse data
                     data = sock.recvfrom(self.buflen)

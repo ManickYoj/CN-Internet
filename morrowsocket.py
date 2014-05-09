@@ -17,13 +17,14 @@ TODO:
 
 import morrowstack as ms
 import queue as q
+import builtins
 
 AF_INET = 2
 SOCK_DGRAM = 2
 timeout = 1
 
 
-class MorrowSocket(object):
+class Socket(object):
 
     # ----- System Methods ----- #
     def __init__(self, family=2, protocol=2, debug=False):
