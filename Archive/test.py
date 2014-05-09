@@ -6,8 +6,7 @@ class Test(object):
 	def __init__(self):
 		self.verbose = True
 
-		thr = t.Thread(target=self.recvTest)
-		thr.start()
+		t.Thread(target=self.recvTest).start()
 		self.sendTest()
 
 
@@ -19,24 +18,24 @@ class Test(object):
 
 	def sendTest(self):
 		while True:
-			first_cmd = input("Hit 'Enter' at any point for input prompt.")
+			first_cmd = input()
 			self.verbose = False
 			cmd = input("Enter Input: ")
 			print("Your command was " + cmd)
 			self.verbose = True
 
-def func(args):
-	print(args)
+# def func(args):
+# 	print(args)
 
-available_cmds = OrderedDict([('help', 1),
-                                 ('show_log', 2),
-                                 ('clear_log', 3),
-                                 ('exit', 4)])
-func_list = {'func': func}
+# available_cmds = OrderedDict([('help', 1),
+#                                  ('show_log', 2),
+#                                  ('clear_log', 3),
+#                                  ('exit', 4)])
+# func_list = {'func': func}
 
-for item in available_cmds.keys():
-	print(item)
+# for item in available_cmds.keys():
+# 	print(item)
 
-func_list['func'].__call__('test')
+# func_list['func'].__call__('test')
 
 Test()

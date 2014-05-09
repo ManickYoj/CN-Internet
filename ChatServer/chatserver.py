@@ -28,8 +28,8 @@ class ChatServer(object):
                                            ('clear_log', self.clearLog),
                                            ('close', self.close)])
 
-        ## Client UI Setup
-        #self.user_cmds = OrderedDict([('\\login')])
+        # Client UI Setup
+        self.user_cmds = OrderedDict([('login', self.login)])
 
         # Start actual recieving thread
         server_thread = t.Thread(target=self.runServer)
@@ -125,10 +125,11 @@ class ChatServer(object):
                         self.output_msgs.append(msg_output)
 
                     # Add new users and relay messages
-                    if address not in self.users:
-                        self.login(msg, address)
-                    else:
-                        self.relayMessage(msg, address)
+                    if msg:
+                        if msg[0] == '/':
+                            self.userCommands(msg[1:], address)
+                        else:
+                            self.relayMessage(msg, address)
 
                 # Allows socket's recvfrom to timeout safely
                 except q.Empty:
@@ -144,6 +145,10 @@ class ChatServer(object):
 
     def relayMessage(self, msg, address):
         """ Repeates a message from the given source IP, if valid. """
+        if not address in self.users:
+            self.sendMessage("Please login with the /login [alias] command.", address)
+            return
+
         if len(msg) >= self.buflen:
             self.sendMessage("Message was too long and has not been sent.", address)
         else:
@@ -151,17 +156,34 @@ class ChatServer(object):
                 self.sendMessage(msg, user.address)
 
     # ----- User Commands ----- #
-    def login(self, msg, address):
-        if msg == "/login":
-            msg = msg.split()
-            if len(msg) > 1:
-                self.users[address] = msg[1]
-                welcome = msg[1] + " has joined the server."
-                print(welcome)
-                self.serverlog.append(welcome)
-                self.relayMessage(welcome)
-            else:
-                self.sendMessage("Login failed. No alias submitted.", address)
+    def userCommands(msg, address):
+        cmd = msg.split()
+        if len(cmd)>1:
+            args = cmd[1:]
+        else:
+            args = []
+        cmd = cmd[0]
+
+        if cmd in self.user_cmds:
+            self.user_cmds[cmd].__call__(address, args)
+
+
+    def login(self, address, *args):
+        if not args:
+            self.sendMessage("Login failed. No alias submitted.", address)
+            return
+        elif not args[0]:
+            self.sendMessage("Login failed. No alias submitted.", address)
+            return
+
+        alias = args[0][0]
+        self.users[address] = u.user(alias, address)
+
+        welcome = alias + " has joined the server."
+        print(welcome)
+
+        self.serverlog.append(welcome)
+        self.relayMessage(welcome, address)
 
 if __name__ == "__main__":
     ChatServer()

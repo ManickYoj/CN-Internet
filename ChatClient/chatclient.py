@@ -23,8 +23,7 @@ class ChatClient(object):
         self.output_msgs = []
 
         # UI Setup
-        self.available_cmds = OrderedDict([('\\setDestAddress', self.setDestAddress),
-                                           ('\\setDestIP', self.setDestIP),
+        self.available_cmds = OrderedDict([('\\setDestIP', self.setDestIP),
                                            ('\\setDestPort', self.setDestPort),
                                            ('\\help', self.help),
                                            ('\\showLog', self.showLog),
@@ -64,20 +63,19 @@ class ChatClient(object):
                 print(item)
             self.output_msgs = []
 
-    def setDestAddress(self, *args):
-        if not args:
-            return
-        self.setDestIP([args[0][0]])
-        self.setDestPort([args[1][0]])
-
     def setDestIP(self, *args):
         if not args:
+            return
+        elif not args[0]:
             return
         self.dest_ip = args[0][0]
 
     def setDestPort(self, *args):
         if not args:
             return
+        elif not args[0]:
+            return
+
         self.dest_port = int(args[0][0])
 
     def showLog(self, *args):
