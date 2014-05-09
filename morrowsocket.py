@@ -63,6 +63,9 @@ class Socket(object):
     def settimeout(self, timeout):
         self.timeout = timeout
 
+    def gethostbyname(self, *args):
+        return self.ip
+
     def sendto(self, msg, address):
         # Construct UDP Layer
         dest_port = self.IPV4ToMorse(address[1])
