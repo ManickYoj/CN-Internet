@@ -52,7 +52,7 @@ class Router(MorrowNIC):
 		self.group = mac.my_group
 		self.ip = '00'
 		self.mac = 'R'
-		self.registry = {'EE':'E'}
+		self.registry = {}
 		if self.verbose: print("Identity Information Extended")
 		#------------------Initializes NIC-------------------#
 		receive_queue = Queue()
