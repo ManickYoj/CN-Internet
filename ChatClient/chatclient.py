@@ -23,12 +23,12 @@ class ChatClient(object):
         self.output_msgs = []
 
         # UI Setup
-        self.available_cmds = OrderedDict([('\\setDestIP', self.setDestIP),
-                                           ('\\setDestPort', self.setDestPort),
-                                           ('\\help', self.help),
-                                           ('\\showLog', self.showLog),
-                                           ('\\clearLog', self.clearLog),
-                                           ('\\close', self.close)])
+        self.available_cmds = OrderedDict([('.setDestIP', self.setDestIP),
+                                           ('.setDestPort', self.setDestPort),
+                                           ('.help', self.help),
+                                           ('.showLog', self.showLog),
+                                           ('.clearLog', self.clearLog),
+                                           ('.close', self.close)])
 
         # Start actual recieving thread
         t.Thread(target=self.runRecv).start()
