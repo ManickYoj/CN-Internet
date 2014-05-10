@@ -156,7 +156,8 @@ class ChatServer(object):
                 self.sendMessage(msg, user.address)
 
     # ----- User Commands ----- #
-    def userCommands(msg, address):
+    def userCommands(self, msg, address):
+        self.serverlog.append("Processing cmd as "+ msg + " from " + address)
         cmd = msg.split()
         if len(cmd)>1:
             args = cmd[1:]
@@ -181,7 +182,6 @@ class ChatServer(object):
 
         welcome = alias + " has joined the server."
         print(welcome)
-
         self.serverlog.append(welcome)
         self.relayMessage(welcome, address)
 
