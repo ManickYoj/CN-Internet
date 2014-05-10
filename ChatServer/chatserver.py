@@ -136,7 +136,7 @@ class ChatServer(object):
                             self.serverlog.append('Attempting to login a user with alias: {} from address: {}'.format(msg[1:], address))
                             self.login(msg[1:], address)
                         else:
-                            self.server.append('Hit recieve function')
+                            self.serverlog.append('Hit recieve function')
                             relay_msg = 'Server relayed message: ' + msg + ' from ' + address
                             self.relayMessage(msg, address)
                             print(relay_msg)
