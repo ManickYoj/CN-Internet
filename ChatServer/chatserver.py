@@ -64,6 +64,7 @@ class ChatServer(object):
 
     def showLog(self, *args):
         print("#----- Start of Server Log ----- #")
+        print("Server log contains {} entries".format(len(self.serverlog)))
         if self.serverlog:
             for (counter, item) in enumerate(self.serverlog):
                 print("Entry No. {}:  ".format(counter) + item)
@@ -120,13 +121,17 @@ class ChatServer(object):
 
                     # Account for when input is being taken
                     if self.disp_output:
+                        self.serverlog.append("Displayed msg: " + msg)
                         print(msg_output)
                     else:
+                        self.serverlog.append("Added msg to output queue : " + msg)
                         self.output_msgs.append(msg_output)
 
                     # Add new users and relay messages
+                    self.serverlog.append("Here")
 
                     if msg:
+                        self.serverlog.append("Message exists!")
                         if msg[0] == '.':
                             self.serverlog.append('Attempting to login a user with alias: {} from address: {}'.format(msg[1:], address))
                             self.login(msg[1:], address)
