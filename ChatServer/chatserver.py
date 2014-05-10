@@ -131,6 +131,7 @@ class ChatServer(object):
                             self.serverlog.append('Attempting to login a user with alias: {} from address: {}'.format(msg[1:], address))
                             self.login(msg[1:], address)
                         else:
+                            self.server.append('Hit recieve function')
                             relay_msg = 'Server relayed message: ' + msg + ' from ' + address
                             self.relayMessage(msg, address)
                             print(relay_msg)
@@ -151,6 +152,7 @@ class ChatServer(object):
     def relayMessage(self, msg, address):
         """ Repeats a message from the given source IP, if valid. """
         if address not in self.users:
+            self.serverlog.append("Proper if statement reached")
             self.sendMessage("Please login with the '.login' command.", address)
         elif len(msg) >= self.buflen:
             self.sendMessage("Message was too long and has not been sent.", address)
