@@ -141,7 +141,7 @@ class ChatServer(object):
     def sendMessage(self, msg, address):
         """ Sends a message to the destination IP """
         if isinstance(msg, list):
-            msg = ''.join(msg)
+            msg = " ".join(msg)
 
         # Send Message
         self.socket.sendto(msg.encode("UTF-8"), address)
@@ -149,10 +149,8 @@ class ChatServer(object):
     def relayMessage(self, msg, address):
         """ Repeates a message from the given source IP, if valid. """
         if not address in self.users:
-            self.sendMessage("Please login with the .login [alias] command.", address)
-            return
-
-        if len(msg) >= self.buflen:
+            self.sendMessage("Please login with the '.login' command.", address)
+        elif len(msg) >= self.buflen:
             self.sendMessage("Message was too long and has not been sent.", address)
         else:
             for user in self.users:
