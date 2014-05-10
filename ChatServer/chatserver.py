@@ -121,26 +121,20 @@ class ChatServer(object):
 
                     # Account for when input is being taken
                     if self.disp_output:
-                        self.serverlog.append("Displayed msg: " + msg)
                         print(msg_output)
                     else:
-                        self.serverlog.append("Added msg to output queue : " + msg)
                         self.output_msgs.append(msg_output)
 
                     # Add new users and relay messages
-                    self.serverlog.append("Here")
-
                     if msg:
-                        self.serverlog.append("Message exists!")
                         if msg[0] == '.':
                             self.serverlog.append('Attempting to login a user with alias: {} from address: {}'.format(msg[1:], address))
                             self.login(msg[1:], address)
                         else:
                             self.serverlog.append('Hit recieve function')
-                            relay_msg = 'Server relayed message: ' + msg + ' from ' + address
+                            
                             self.relayMessage(msg, address)
-                            print(relay_msg)
-                            self.serverlog.append(relay_msg)
+                            
 
                 # Allows socket's recvfrom to timeout safely
                 except q.Empty:
@@ -156,14 +150,20 @@ class ChatServer(object):
 
     def relayMessage(self, msg, address):
         """ Repeats a message from the given source IP, if valid. """
-        if address not in self.users:
+        self.serverlog.append("Msg recieved in relay message as MSG: {} from ADDR: {}".format(msg, address))
+        if not (address in self.users):
             self.serverlog.append("Proper if statement reached")
             self.sendMessage("Please login with the '.login' command.", address)
+            relay_msg = "Server did not relay message because user is not logged in."
         elif len(msg) >= self.buflen:
             self.sendMessage("Message was too long and has not been sent.", address)
+            relay_msg = "Server did not relay message due to length."
         else:
             for user in self.users:
                 self.sendMessage(msg, user.address)
+            relay_msg = 'Server relayed message: ' + msg + ' from ' + address
+        print(relay_msg)
+        self.serverlog.append(relay_msg)
 
     # ----- User Commands ----- #
     def login(self, alias, address):
