@@ -57,7 +57,7 @@ class MorrowNIC(object):
 			print("MorrowNet Virtual Network Interface Card Initialized")
 			print("Requesting IP address from router at MAC address: " + self.mac_dict['router'])
 		if self.mac != self.mac_dict['router']:
-			self.send_queue.put(DatalinkLayer(self.mac_dict['router'] + self.mac + "0000E0300E"))
+			self.send_queue.put((DatalinkLayer(self.mac_dict['router'] + self.mac + "0000E0300E"),0))
 
 
 	def edgeFound(self,pin):
@@ -231,17 +231,18 @@ class MorrowNIC(object):
 			elif not self.send_queue.empty():
 				difference = (datetime.now()-self.previous_edge)
 				if (difference.seconds*1000000 + difference.microseconds) > self.ack_wait:
-					datalink = self.send_queue.get()
-					transmission = self.convertToTransmission(str(datalink))
-					self.transmit(transmission)
-					if self.debug: print("Sent transmission")
-					#-----------------Handle Ack------------------#
-					sleep(self.ack_wait/1000000)
-					if self.last_ack_received == datalink.getDestMAC():
-						if self.debug: print("Ack received: " + self.last_ack_received)
-						self.last_ack_received = None
-					else:
-						self.send_queue.put(datalink)
+					datalink,n = self.send_queue.get()
+					if n < 3:
+						transmission = self.convertToTransmission(str(datalink))
+						self.transmit(transmission)
+						if self.debug: print("Sent transmission")
+						#-----------------Handle Ack------------------#
+						sleep(self.ack_wait/1000000)
+						if self.last_ack_received == datalink.getDestMAC():
+							if self.debug: print("Ack received: " + self.last_ack_received)
+							self.last_ack_received = None
+						else:
+							self.send_queue.put((datalink,n+1))
 			sleep((self.ack_wait/1000000)/4)
 
 	def send(self,IP):
@@ -255,7 +256,7 @@ class MorrowNIC(object):
 		else:
 			dest_mac = self.mac_dict['router']
 		datalink = DatalinkLayer(IP,(dest_mac,self.mac))
-		self.send_queue.put(datalink)
+		self.send_queue.put((datalink,0))
 
 	def getIP(self):
 		while not self.ip:

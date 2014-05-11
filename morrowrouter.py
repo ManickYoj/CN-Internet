@@ -88,7 +88,7 @@ class Router(MorrowNIC):
 				IP = IPLayer(ipheader_udpheader_msg)
 
 				dest_mac, source_mac= self.registry[IP.getHeader(0)], self.mac
-				self.send_queue.put(DatalinkLayer(IP,(dest_mac,source_mac)))
+				self.send_queue.put((DatalinkLayer(IP,(dest_mac,source_mac)),0))
 
 				if self.verbose:
 					print("Message received on Ethernet. Routed to MorrowNet.")
@@ -122,7 +122,7 @@ class Router(MorrowNIC):
 
 			if self.mac == dest_mac and self.group == dest_group:
 				datalink.setHeader((self.registry[dest_ip],source_mac))
-				self.send_queue.put(datalink)
+				self.send_queue.put((datalink,0))
 				if self.verbose:
 					print("Message received on MorrowNet. Routed to MorrowNet.")
 					print(" Dest MAC: {}".format(datalink.getHeader(0)))
@@ -143,7 +143,7 @@ class Router(MorrowNIC):
 					self.registry[new_ip] = source_mac
 					datalink.setHeader((source_mac,self.mac))
 					datalink.payload.setHeader((new_ip,'00'))
-					self.send_queue.put(datalink)
+					self.send_queue.put((datalink,0))
 					if self.verbose:
 						print("Assigning IP on MorrowNet.")
 						print(" Recipient MAC: {}".format(datalink.getHeader(0)))
@@ -153,7 +153,7 @@ class Router(MorrowNIC):
 					reverse_registry = {v:k for(k,v) in self.registry.items()}
 					datalink.setHeader((source_mac,self.mac))
 					datalink.payload.setHeader((reverse_registry[source_mac],'00'))
-					self.send_queue.put(datalink)
+					self.send_queue.put((datalink,0))
 					if self.verbose:
 						print("Assigning IP on MorrowNet.")
 						print(" Recipient MAC: {}".format(datalink.getHeader(0)))

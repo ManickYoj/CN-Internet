@@ -128,8 +128,8 @@ class ChatServer(object):
                     # Add new users and relay messages
                     if msg:
                         if msg[0] == '.':
-                            self.serverlog.append('Attempting to login a user with alias: {} from address: {}'.format(msg[1:], address))
-                            self.login(msg[6:], address)
+                            self.serverlog.append('Attempting to login a user with alias: {} from address: {}'.format(msg[7:], address))
+                            self.login(msg[7:], address)
                         else:
                             self.relayMessage(msg, address)
                             
