@@ -154,8 +154,10 @@ class ChatServer(object):
             self.sendMessage("Message was too long and has not been sent.", address)
             relay_msg = "Server did not relay message due to length."
         else:
-            for user in self.users.values():
-                self.sendMessage(msg, user.address)
+            for adr in self.users:
+                msg = self.users[address].alias + ": " + msg
+                if not (adr == address):
+                    self.sendMessage(msg, adr)
             relay_msg = 'Server relayed message: ' + msg + ' from ' + address
         print(relay_msg)
         self.serverlog.append(relay_msg)
@@ -174,7 +176,9 @@ class ChatServer(object):
         welcome = alias + " has joined the server."
         print(welcome)
         self.serverlog.append(welcome)
-        self.relayMessage(welcome, address)
+        
+        for adr in self.users:
+            self.sendMessage(welcome, adr)
 
 if __name__ == "__main__":
     ChatServer()
