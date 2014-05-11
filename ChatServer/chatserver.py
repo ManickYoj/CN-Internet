@@ -128,7 +128,6 @@ class ChatServer(object):
                     # Add new users and relay messages
                     if msg:
                         if msg[0] == '.':
-                            self.serverlog.append('Attempting to login a user with alias: {} from address: {}'.format(msg[7:], address))
                             self.login(msg[7:], address)
                         else:
                             self.relayMessage(msg, address)
@@ -149,14 +148,13 @@ class ChatServer(object):
     def relayMessage(self, msg, address):
         """ Repeats a message from the given source IP, if valid. """
         if not (address in self.users):
-            self.serverlog.append("Proper if statement reached")
             self.sendMessage("Please login with the '.login' command.", address)
             relay_msg = "Server did not relay message because user is not logged in."
         elif len(msg) >= self.buflen:
             self.sendMessage("Message was too long and has not been sent.", address)
             relay_msg = "Server did not relay message due to length."
         else:
-            for user in self.users:
+            for user in self.users.values():
                 self.sendMessage(msg, user.address)
             relay_msg = 'Server relayed message: ' + msg + ' from ' + address
         print(relay_msg)
@@ -164,18 +162,14 @@ class ChatServer(object):
 
     # ----- User Commands ----- #
     def login(self, alias, address):
-        self.serverlog.append("Hit login function.")
         if not alias:
             self.sendMessage("Login failed. No alias submitted.", address)
             return
 
-        self.serverlog.append("Alias Exists and is {}.".format(alias))
         if isinstance(alias, list):
             alias = alias[0]
 
-        self.serverlog.append("Alias is a string and reads {}.".format(alias))
         self.users[address] = u.User(alias, address)
-        self.serverlog.append("User created.")
 
         welcome = alias + " has joined the server."
         print(welcome)
