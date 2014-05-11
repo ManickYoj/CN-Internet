@@ -129,10 +129,8 @@ class ChatServer(object):
                     if msg:
                         if msg[0] == '.':
                             self.serverlog.append('Attempting to login a user with alias: {} from address: {}'.format(msg[1:], address))
-                            self.login(msg[1:], address)
+                            self.login(msg[6:], address)
                         else:
-                            self.serverlog.append('Hit recieve function')
-                            
                             self.relayMessage(msg, address)
                             
 
@@ -150,7 +148,6 @@ class ChatServer(object):
 
     def relayMessage(self, msg, address):
         """ Repeats a message from the given source IP, if valid. """
-        self.serverlog.append("Msg recieved in relay message as MSG: {} from ADDR: {}".format(msg, address))
         if not (address in self.users):
             self.serverlog.append("Proper if statement reached")
             self.sendMessage("Please login with the '.login' command.", address)
@@ -170,6 +167,9 @@ class ChatServer(object):
         if not alias:
             self.sendMessage("Login failed. No alias submitted.", address)
             return
+
+        if isinstance(alias, list):
+            alias = alias[0]
 
         self.users[address] = u.user(alias, address)
 
