@@ -173,8 +173,8 @@ class ChatServer(object):
         if isinstance(alias, list):
             alias = alias[0]
 
-        self.serverlog.append("Alias is a string and reads.".format(alias))
-        self.users[address] = u.user(alias, address)
+        self.serverlog.append("Alias is a string and reads {}.".format(alias))
+        self.users[address] = u.User(alias, address)
         self.serverlog.append("User created.")
 
         welcome = alias + " has joined the server."
