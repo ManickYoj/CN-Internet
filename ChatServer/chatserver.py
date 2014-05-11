@@ -164,14 +164,18 @@ class ChatServer(object):
 
     # ----- User Commands ----- #
     def login(self, alias, address):
+        self.serverlog.append("Hit login function.")
         if not alias:
             self.sendMessage("Login failed. No alias submitted.", address)
             return
 
+        self.serverlog.append("Alias Exists and is {}.".format(alias))
         if isinstance(alias, list):
             alias = alias[0]
 
+        self.serverlog.append("Alias is a string and reads.".format(alias))
         self.users[address] = u.user(alias, address)
+        self.serverlog.append("User created.")
 
         welcome = alias + " has joined the server."
         print(welcome)

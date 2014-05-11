@@ -1,7 +1,7 @@
-class User:
+class User(object):
 
     def __init__(self, alias, address):
-        self.alias = alias;
-        self.timeSinceActive=0;
-
+        self.alias = alias
         self.address = address
+
+        self.timeSinceActive=0
