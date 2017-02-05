@@ -17,7 +17,7 @@ The following are start to finish instructions to setting up the internet in a b
 ###Linux:
 
 4. Open terminal.
-5. Run `finddev`. It may fail. If it fails, run `curl https://raw.githubusercontent.com/ManickYoj/Sensors/master/finddev.bash >> ~/.bashrc && source ~/.bashrc ` to install the `finddev` script. Then run `finddev`
+5. Run `finddev`. It may fail. If it fails, run `curl https://raw.githubusercontent.com/ManickYoj/CN-Internet/master/Scripts/finddev.bash >> ~/.bashrc && source ~/.bashrc ` to install the `finddev` script. Then run `finddev`
 6. One of the results should be of the format `/dev/ttyUSB0 - Prolific_Technology_Inc._USB-Serial_Controller`. The `/dev/ttyUSB0` segment of the line is the port you'll need for the serial connection.
 7. Run `picocom /dev/ttyUSB0 -b 115200` with the port found in step 5 to start the serial session. If picocom is not installed, run `sudo apt-get install picocom`, the run `picocom /dev/ttyUSB0 -b 115200`.
 8. Press enter once to get the login prompt from the Raspberry Pi
